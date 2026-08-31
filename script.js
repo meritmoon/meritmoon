@@ -1015,39 +1015,100 @@ makeCarousel({
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   12. PITI SPARK BURST on primary button hover
+   12. MINDFUL CTA BUTTON FIREFLY SWARM
+   - Fireflies enter slowly when cursor enters the button
+   - Wander and hover gently around the button perimeter
+   - Float away slowly into the night when cursor leaves (same gentle speed)
    ══════════════════════════════════════════════════════════════════════ */
-(function initSparks() {
-  const kf = document.createElement('style');
-  kf.textContent = `
-    @keyframes spark-out {
-      0%   { transform: translate(0,0) scale(0); opacity:1; }
-      70%  { opacity:0.8; }
-      100% { transform: translate(var(--spx),var(--spy)) scale(1.4); opacity:0; }
-    }
-  `;
-  document.head.appendChild(kf);
+(function initButtonFireflies() {
+  const buttons = document.querySelectorAll('.btn--forest, .nav__pill, .store-btn');
+  if (!buttons.length) return;
 
-  document.querySelectorAll('.btn--forest').forEach(btn => {
-    btn.addEventListener('mouseenter', () => {
-      for (let i = 0; i < 7; i++) {
-        const sp = document.createElement('span');
-        sp.textContent = Math.random() < 0.5 ? '✦' : '✧';
-        const spx = (Math.random() - 0.5) * 48;
-        const spy = (Math.random() - 0.7) * 48;
-        sp.style.cssText = `
-          position:absolute;
-          color:${Math.random() < 0.5 ? C.goldBright : C.silverBright};
-          font-size:${7 + Math.random() * 7}px;
-          pointer-events:none; z-index:20;
-          left:${15 + Math.random() * 70}%; top:${10 + Math.random() * 80}%;
-          --spx:${spx}px; --spy:${spy}px;
-          animation: spark-out 0.65s ease forwards;
-          filter: drop-shadow(0 0 3px ${C.gold});
-        `;
-        btn.appendChild(sp);
-        setTimeout(() => sp.remove(), 700);
+  buttons.forEach(btn => {
+    // Ensure parent button is positioned
+    if (getComputedStyle(btn).position === 'static') {
+      btn.style.position = 'relative';
+    }
+
+    const swarmWrap = document.createElement('div');
+    swarmWrap.className = 'btn-firefly-swarm';
+    swarmWrap.setAttribute('aria-hidden', 'true');
+    btn.appendChild(swarmWrap);
+
+    const fireflyCount = 5;
+    const flies = [];
+
+    for (let i = 0; i < fireflyCount; i++) {
+      const fly = document.createElement('div');
+      fly.className = 'btn-firefly';
+      const isEmerald = i % 2 === 0;
+      fly.classList.add(isEmerald ? 'btn-firefly--emerald' : 'btn-firefly--gold');
+      swarmWrap.appendChild(fly);
+
+      flies.push({
+        el: fly,
+        angle: (i / fireflyCount) * Math.PI * 2,
+        speed: 0.0016 + Math.random() * 0.0012,
+        radiusX: 24 + Math.random() * 28,
+        radiusY: 12 + Math.random() * 18,
+        orbitCenterX: (Math.random() - 0.5) * 45,
+        orbitCenterY: (Math.random() - 0.5) * 16,
+        wobbleSpeed: 0.0025 + Math.random() * 0.002,
+        wobblePhase: Math.random() * Math.PI * 2,
+        driftOutX: (Math.random() - 0.5) * 80,
+        driftOutY: -(25 + Math.random() * 55),
+        fadeProgress: 0,
+      });
+    }
+
+    let isHovering = false;
+    let animId = null;
+
+    function renderSwarm(time) {
+      let anyVisible = false;
+
+      flies.forEach((f, idx) => {
+        // Smooth entering and gentle dispersal transition
+        const targetFade = isHovering ? 1.0 : 0.0;
+        const fadeSpeed = isHovering ? 0.04 : 0.022; // Gentle, natural speed
+        f.fadeProgress += (targetFade - f.fadeProgress) * fadeSpeed;
+
+        if (f.fadeProgress > 0.01) {
+          anyVisible = true;
+          f.el.style.opacity = Math.min(1, f.fadeProgress * 1.05).toFixed(3);
+
+          // Harmonic wandering orbit around the button perimeter
+          const currentAngle = time * f.speed + f.angle;
+          const wobble = Math.sin(time * f.wobbleSpeed + f.wobblePhase) * 9;
+
+          // When cursor leaves, gently drift outward into the night sky
+          const disperseDist = 1 - f.fadeProgress;
+          const posX = Math.cos(currentAngle) * (f.radiusX + wobble) + f.orbitCenterX + (f.driftOutX * disperseDist);
+          const posY = Math.sin(currentAngle * 1.4) * (f.radiusY + wobble) + f.orbitCenterY + (f.driftOutY * disperseDist);
+
+          // Soft organic breathing pulse
+          const pulse = 0.85 + Math.sin(time * 0.0035 + idx * 1.3) * 0.35;
+
+          f.el.style.transform = `translate3d(calc(-50% + ${posX.toFixed(1)}px), calc(-50% + ${posY.toFixed(1)}px), 0) scale(${pulse.toFixed(2)})`;
+        } else {
+          f.el.style.opacity = '0';
+        }
+      });
+
+      if (anyVisible || isHovering) {
+        animId = requestAnimationFrame(renderSwarm);
+      } else {
+        animId = null;
       }
+    }
+
+    btn.addEventListener('mouseenter', () => {
+      isHovering = true;
+      if (!animId) animId = requestAnimationFrame(renderSwarm);
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      isHovering = false;
     });
   });
 })();

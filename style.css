@@ -626,8 +626,45 @@ strong {
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: none;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   text-decoration: none;
+}
+
+/* Button Firefly Swarm on Hover */
+.btn-firefly-swarm {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+
+.btn-firefly {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.btn-firefly--gold {
+  background: var(--gold-bright);
+  box-shadow:
+    0 0 8px 2px var(--gold-bright),
+    0 0 16px 4px rgba(240, 200, 112, 0.7),
+    0 0 26px 6px rgba(212, 168, 83, 0.35);
+}
+
+.btn-firefly--emerald {
+  background: var(--emerald-bright);
+  box-shadow:
+    0 0 8px 2px var(--emerald-bright),
+    0 0 16px 4px rgba(77, 191, 130, 0.7),
+    0 0 26px 6px rgba(46, 139, 87, 0.35);
 }
 
 .btn--forest {
@@ -864,8 +901,9 @@ strong {
   align-items: center;
 }
 
-/* Open Grass Field — Low, gentle rolling meadow at gentle night */
-.grass-field {
+/* ── OPEN GRASS FIELD WITH GENTLE MOONLIGHT REFLECTION ──────────────────── */
+.grass-field,
+.cta-grass-field {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -878,6 +916,10 @@ strong {
   background-size: 100% 100%;
   opacity: 0.95;
   z-index: 1;
+}
+
+.cta-grass-field {
+  height: 16%;
 }
 
 /* Falling leaves drifting gently with the night breeze */
@@ -897,63 +939,7 @@ strong {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
 }
 
-/* Moonbeam shafts */
-.moonbeam-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
 
-.moonbeam {
-  position: absolute;
-  top: 0;
-  width: 80px;
-  background: linear-gradient(to bottom, rgba(200, 216, 192, 0.06) 0%, transparent 80%);
-  transform-origin: top center;
-  pointer-events: none;
-}
-
-.mb1 {
-  left: 30%;
-  height: 65%;
-  transform: rotate(-4deg);
-  animation: beam-sway 12s ease-in-out infinite;
-}
-
-.mb2 {
-  left: 46%;
-  height: 75%;
-  width: 120px;
-  transform: rotate(1deg);
-  opacity: 0.7;
-  animation: beam-sway 15s ease-in-out infinite 2s;
-}
-
-.mb3 {
-  left: 62%;
-  height: 55%;
-  transform: rotate(5deg);
-  opacity: 0.5;
-  animation: beam-sway 10s ease-in-out infinite 4s;
-}
-
-@keyframes beam-sway {
-
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: rotate(var(--base-rot, 0deg)) scaleX(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: rotate(var(--base-rot, 0deg)) scaleX(1.2);
-  }
-}
 
 /* Ground mist */
 .ground-mist {
@@ -1351,33 +1337,37 @@ strong {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  color: var(--text-dim);
+  gap: 10px;
+  color: var(--silver-bright);
   font-family: var(--font-display);
-  font-size: 0.6rem;
-  letter-spacing: 0.25em;
+  font-size: 0.70rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(77, 191, 130, 0.45), 0 0 22px rgba(200, 216, 192, 0.35);
   animation: fade-up 1s var(--ease-forest) 2s both;
+  z-index: 5;
 }
 
 .scroll-stem {
-  width: 1px;
-  height: 36px;
-  background: linear-gradient(to bottom, transparent, var(--silver-dim));
+  width: 1.5px;
+  height: 38px;
+  background: linear-gradient(to bottom, transparent, var(--emerald-bright), var(--silver-bright));
+  box-shadow: 0 0 8px rgba(77, 191, 130, 0.6);
   animation: stem-pulse 2.5s ease-in-out infinite;
 }
 
 @keyframes stem-pulse {
-
   0%,
   100% {
     transform: scaleY(1);
-    opacity: 0.5;
+    opacity: 0.6;
   }
 
   50% {
-    transform: scaleY(0.6);
+    transform: scaleY(0.65);
     opacity: 1;
+    box-shadow: 0 0 12px rgba(77, 191, 130, 0.9);
   }
 }
 
@@ -2639,20 +2629,7 @@ strong {
   border-top: 1px solid var(--border-moss);
 }
 
-/* Small Grass Field for CTA */
-.cta-grass-field {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 16%;
-  pointer-events: none;
-  background-image: url('grass-field.svg');
-  background-repeat: no-repeat;
-  background-position: bottom center;
-  background-size: 100% 100%;
-  opacity: 0.95;
-}
+
 
 .cta-moon-scene {
   position: absolute;
