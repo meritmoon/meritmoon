@@ -1,35 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84" width="100%" height="100%">
   <defs>
-    <radialGradient id="moonSilver" cx="40%" cy="35%" r="60%">
+    <!-- Rich 3D Spherical Lunar Gradient (Zenith Top-Left Highlight & Bottom-Right Crescent Shadow) -->
+    <radialGradient id="faviconLunarSurface" cx="36%" cy="28%" r="76%">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="60%" stop-color="#E8ECF2"/>
-      <stop offset="100%" stop-color="#B8C4D4"/>
+      <stop offset="30%" stop-color="#F2F8F0"/>
+      <stop offset="58%" stop-color="#D0E2CC"/>
+      <stop offset="80%" stop-color="#A0BE9E"/>
+      <stop offset="100%" stop-color="#6B8E67"/>
     </radialGradient>
-
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="3.5" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
   </defs>
 
+  <!-- Luminous 3D Moon Sphere -->
   <circle
-    cx="50"
-    cy="50"
+    cx="42"
+    cy="42"
     r="42"
-    fill="url(#moonSilver)"
-    filter="url(#glow)"
+    fill="url(#faviconLunarSurface)"
   />
 
-  <circle
-    cx="50"
-    cy="50"
-    r="42"
-    fill="none"
-    stroke="#C5CFE0"
-    stroke-width="0.8"
-    opacity="0.5"
-  />
+  <!-- Facial Features (Open soulful eyes and standout smile) -->
+  <g id="favicon-face">
+    <!-- Left Open Eye with Specular Catchlight -->
+    <g id="favicon-eye-left">
+      <circle cx="28.5" cy="30" r="4.8" fill="#0D1C10"/>
+      <circle cx="27.1" cy="28.5" r="1.5" fill="#FFFFFF" opacity="0.95"/>
+      <circle cx="30" cy="31.5" r="0.75" fill="#FFFFFF" opacity="0.75"/>
+    </g>
+
+    <!-- Right Open Eye with Specular Catchlight -->
+    <g id="favicon-eye-right">
+      <circle cx="55.5" cy="30" r="4.8" fill="#0D1C10"/>
+      <circle cx="54.1" cy="28.5" r="1.5" fill="#FFFFFF" opacity="0.95"/>
+      <circle cx="57" cy="31.5" r="0.75" fill="#FFFFFF" opacity="0.75"/>
+    </g>
+
+    <!-- Standout Sweet, Warm, Joyful Smile ◡ -->
+    <path
+      d="M 30 48 Q 42 59 54 48"
+      fill="none"
+      stroke="#0D1C10"
+      stroke-width="3.3"
+      stroke-linecap="round"
+    />
+  </g>
 </svg>
