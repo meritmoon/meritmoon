@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   MERITMOON v2 — SCRIPT.JS
+   MERITMOON — SCRIPT.JS
    Forest canvas · Fireflies · Carousels · Scroll reveals · Counters
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -11,10 +11,10 @@ const C = {
   emerald: '#2E8B57',
   ruby: '#C24B5A',
   gold: '#D4A853',
-  silverBright: '#E8F0E0',
+  silverBright: '#F4FAF0',
   emeraldBright: '#4DBF82',
   goldBright: '#F0C870',
-  silverDim: '#7A8C74',
+  silverDim: '#8FA78C',
   emeraldDim: '#1A5235',
   bgDeep: '#020A05',
 };
@@ -28,7 +28,7 @@ const C = {
   const canvas = document.getElementById('forest-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let W, H, stars = [], shooters = [], driftClouds = [];
+  let W, H, stars = [], driftClouds = [];
   let frame = 0, raf;
 
   function rand(a, b) { return Math.random() * (b - a) + a; }
@@ -86,20 +86,7 @@ const C = {
     }
   }
 
-  /* Shooting stars */
-  function spawnShooter() {
-    const angle = rand(-0.35, 0.12);
-    const spd = rand(9, 20);
-    shooters.push({
-      x: rand(W * 0.05, W * 0.85),
-      y: rand(0, H * 0.38),
-      vx: Math.cos(angle) * spd,
-      vy: Math.sin(angle) * spd,
-      len: rand(55, 130),
-      op: 1,
-      decay: rand(0.013, 0.024),
-    });
-  }
+
 
   /* Paint sky gradient */
   function drawSky() {
@@ -154,56 +141,56 @@ const C = {
     });
   }
 
-  /* Paint shooting stars */
+  /* Shooting stars (streaking from top-right down to bottom-left across the open moon sky) */
+  let shooters = [];
+  let nextShooterTime = performance.now() + rand(2500, 6000);
+
+  function spawnShooter() {
+    // Angle pointing from top-right down towards bottom-left (~124° to ~148°)
+    const angle = rand(Math.PI * 0.68, Math.PI * 0.82);
+    const spd = rand(7, 13);
+    shooters.push({
+      // Spawn in the open upper-right sky around the moon region
+      x: rand(W * 0.52, W * 0.96),
+      y: rand(H * 0.02, H * 0.36),
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd,
+      len: rand(70, 140),
+      op: 0.95,
+      decay: rand(0.010, 0.017),
+    });
+    nextShooterTime = performance.now() + rand(6000, 16000);
+  }
+
   function drawShooters() {
+    if (performance.now() >= nextShooterTime) {
+      spawnShooter();
+    }
     shooters = shooters.filter(s => s.op > 0);
     shooters.forEach(s => {
-      const tx = s.x - s.vx * (s.len / 14);
-      const ty = s.y - s.vy * (s.len / 14);
+      const tx = s.x - s.vx * (s.len / 12);
+      const ty = s.y - s.vy * (s.len / 12);
       const g = ctx.createLinearGradient(tx, ty, s.x, s.y);
-      g.addColorStop(0, 'rgba(255,255,255,0)');
-      g.addColorStop(1, `rgba(232,240,228,${s.op})`);
+      g.addColorStop(0, 'rgba(200, 216, 192, 0)');
+      g.addColorStop(0.7, `rgba(200, 216, 192, ${s.op * 0.5})`);
+      g.addColorStop(1, `rgba(255, 255, 255, ${s.op})`);
       ctx.beginPath();
       ctx.moveTo(tx, ty);
       ctx.lineTo(s.x, s.y);
       ctx.strokeStyle = g;
-      ctx.lineWidth = s.op * 1.4;
+      ctx.lineWidth = s.op * 1.3;
       ctx.stroke();
-      s.x += s.vx; s.y += s.vy; s.op -= s.decay;
+
+      // Soft sparkling head
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${s.op})`;
+      ctx.fill();
+
+      s.x += s.vx;
+      s.y += s.vy;
+      s.op -= s.decay;
     });
-    if (frame % 300 === 0 && Math.random() < 0.55) spawnShooter();
-  }
-
-  /* Paint far treeline on canvas — reinforces CSS forest layers */
-  function drawTreeline() {
-    ctx.save();
-    // Moonlit horizon glow
-    const hg = ctx.createLinearGradient(0, H * 0.72, 0, H);
-    hg.addColorStop(0, 'rgba(200,216,192,0.04)');
-    hg.addColorStop(0.3, 'rgba(46,139,87,0.02)');
-    hg.addColorStop(1, 'rgba(2,10,5,0)');
-    ctx.fillStyle = hg;
-    ctx.fillRect(0, H * 0.72, W, H * 0.28);
-
-    // Very faint canopy shimmer line
-    ctx.strokeStyle = 'rgba(200,216,192,0.04)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    // Jagged silhouette top
-    ctx.moveTo(0, H * 0.78);
-    let px = 0;
-    while (px < W) {
-      const step = rand(8, 20);
-      const ht = rand(H * 0.72, H * 0.82);
-      ctx.lineTo(px, ht);
-      px += step;
-    }
-    ctx.lineTo(W, H);
-    ctx.lineTo(0, H);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(2,8,4,0.3)';
-    ctx.fill();
-    ctx.restore();
   }
 
   function animate() {
@@ -212,7 +199,6 @@ const C = {
     drawClouds();
     drawStars();
     drawShooters();
-    drawTreeline();
     raf = requestAnimationFrame(animate);
   }
 
@@ -238,23 +224,27 @@ const C = {
 (function initFireflies() {
   const container = document.getElementById('fireflies');
   if (!container) return;
-  const count = window.innerWidth < 768 ? 10 : 22;
+  const count = window.innerWidth < 768 ? 16 : 34;
 
   for (let i = 0; i < count; i++) {
     const ff = document.createElement('div');
     ff.className = 'firefly';
     const x = Math.random() * 100;
-    const y = 30 + Math.random() * 65;
-    const dur = 6 + Math.random() * 12;
+    const y = 5 + Math.random() * 90;
+    const dur = 7 + Math.random() * 12;
     const del = Math.random() * 10;
-    const dx = (Math.random() - 0.5) * 80;
-    const dy = -(20 + Math.random() * 80);
-    const dx2 = (Math.random() - 0.5) * 60;
-    const dy2 = -(40 + Math.random() * 100);
-    // Occasionally emerald-tinted firefly
-    if (Math.random() < 0.25) {
+    const dx = (Math.random() - 0.5) * 90;
+    const dy = -(20 + Math.random() * 90);
+    const dx2 = (Math.random() - 0.5) * 70;
+    const dy2 = -(40 + Math.random() * 110);
+    // Occasionally emerald or silver-tinted firefly
+    const randType = Math.random();
+    if (randType < 0.28) {
       ff.style.background = '#4DBF82';
-      ff.style.boxShadow = '0 0 6px 2px #4DBF82';
+      ff.style.boxShadow = '0 0 10px 3px rgba(77, 191, 130, 0.95), 0 0 25px 8px rgba(46, 139, 87, 0.5)';
+    } else if (randType < 0.42) {
+      ff.style.background = '#E8F0E0';
+      ff.style.boxShadow = '0 0 10px 3px rgba(232, 240, 228, 0.95), 0 0 25px 8px rgba(200, 216, 192, 0.45)';
     }
     ff.style.cssText += `
       left: ${x}%; top: ${y}%;
@@ -268,6 +258,83 @@ const C = {
       animation-duration: ${dur}s;
     `;
     container.appendChild(ff);
+  }
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   2B. FALLING LEAVES (One or two mindful leaves drifting on the night breeze)
+   ══════════════════════════════════════════════════════════════════════ */
+(function initFallingLeaves() {
+  const container = document.getElementById('falling-leaves');
+  if (!container) return;
+
+  const leafSvg = `
+    <svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.5 12C2.5 12 6.5 4 15.5 3C17.5 7 17 14 12 18C7 22 2.5 12 2.5 12Z" fill="currentColor" fill-opacity="0.72"/>
+      <path d="M2.5 12C6.5 12.5 11 10.5 15.5 3" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-linecap="round"/>
+      <path d="M7 11.5L9.5 9" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+      <path d="M10 13.5L13 10.5" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+    </svg>
+  `;
+
+  const leafColors = ['#4DBF82', '#7ABD90', '#C8D8C0', '#D4A853'];
+  const count = 3; // Keep minimal: only 2-3 leaves active at once
+
+  function spawnLeaf(i) {
+    const leaf = document.createElement('div');
+    leaf.className = 'falling-leaf';
+    leaf.innerHTML = leafSvg;
+
+    const size = 16 + Math.random() * 10;
+    const color = leafColors[Math.floor(Math.random() * leafColors.length)];
+    leaf.style.width = size + 'px';
+    leaf.style.height = size + 'px';
+    leaf.style.color = color;
+
+    container.appendChild(leaf);
+
+    const startX = Math.random() * (window.innerWidth * 0.7);
+    const startY = -40 - Math.random() * 40;
+    const endX = startX + (Math.random() * 160 + 60);
+    const endY = window.innerHeight + 50;
+    const duration = 14000 + Math.random() * 8000;
+    const startTime = performance.now() + (i * 4500) + Math.random() * 2000;
+    const swayAmp = 30 + Math.random() * 25;
+    const swayFreq = 0.0015 + Math.random() * 0.001;
+    const rotSpeedZ = (Math.random() - 0.5) * 0.003;
+    const rotSpeedY = 0.002 + Math.random() * 0.002;
+
+    function step(now) {
+      if (now < startTime) {
+        requestAnimationFrame(step);
+        return;
+      }
+      const elapsed = now - startTime;
+      const progress = elapsed / duration;
+
+      if (progress >= 1) {
+        leaf.remove();
+        spawnLeaf(0);
+        return;
+      }
+
+      const currentY = startY + progress * (endY - startY);
+      const currentX = startX + progress * (endX - startX) + Math.sin(now * swayFreq) * swayAmp;
+      const rotZ = now * rotSpeedZ * 180;
+      const rotY = Math.sin(now * rotSpeedY) * 65;
+      const opacity = progress < 0.1 ? progress / 0.1 : (progress > 0.85 ? (1 - progress) / 0.15 : 0.75);
+
+      leaf.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotateZ(${rotZ}deg) rotateY(${rotY}deg)`;
+      leaf.style.opacity = opacity;
+
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  for (let i = 0; i < count; i++) {
+    spawnLeaf(i);
   }
 })();
 
@@ -302,6 +369,12 @@ const C = {
     node.style.cursor = 'none';
     node.addEventListener('mouseenter', () => el.classList.add('hover'));
     node.addEventListener('mouseleave', () => el.classList.remove('hover'));
+  });
+
+  // Hide custom cursor when hovering over any moon icon or mascot so face is never obscured
+  document.querySelectorAll('.moon-mascot, .hero-moon, .about__big-moon, #three-moon-mount').forEach(node => {
+    node.addEventListener('mouseenter', () => el.classList.add('hidden'));
+    node.addEventListener('mouseleave', () => el.classList.remove('hidden'));
   });
 })();
 
@@ -510,8 +583,11 @@ makeCarousel({
     });
   }, { passive: true });
 
-  // Eye follow
+  // Eye follow (2D fallback only)
   document.addEventListener('mousemove', e => {
+    const heroMoon = document.getElementById('hero-moon');
+    if (heroMoon && heroMoon.classList.contains('has-three')) return;
+
     document.querySelectorAll('.mm-face').forEach(face => {
       const r = face.getBoundingClientRect();
       const fcx = r.left + r.width / 2;
@@ -531,10 +607,13 @@ makeCarousel({
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   10. MOON BLINK
+   10. MOON BLINK (2D Fallback)
    ══════════════════════════════════════════════════════════════════════ */
 (function initBlink() {
   function blink(face) {
+    const heroMoon = document.getElementById('hero-moon');
+    if (heroMoon && heroMoon.classList.contains('has-three')) return;
+
     face.querySelectorAll('.mm-eye').forEach(e => {
       const base = e.style.transform || '';
       e.style.transform = base + ' scaleY(0.08)';
@@ -549,18 +628,385 @@ makeCarousel({
 
 
 /* ══════════════════════════════════════════════════════════════════════
+   10B. THREE.JS 3D INTERACTIVE MINDFUL MOON MASCOT
+   - 3D Sphere geometry with custom dynamic canvas texture
+   - Smooth 3D head-tracking (turns towards cursor across screen)
+   - Organic micro-blinking (Poisson-spaced natural blink)
+   - Cursor hover / proximity interaction:
+     * Smoothly morphs into super-cute, peaceful, calming, blissful meditating expression
+     * Sweet curved joy eyes (⌒ ⌒), blooming warm rosy-ruby blushes, serene peaceful smile
+   - Fallback protection: if WebGL or Three.js is unavailable, CSS moon remains active
+   ══════════════════════════════════════════════════════════════════════ */
+(function initThreeMindfulMoon() {
+  const mount = document.getElementById('three-moon-mount');
+  const heroMoon = document.getElementById('hero-moon');
+  if (!mount || !heroMoon || typeof THREE === 'undefined') return;
+
+  // Scene setup
+  const scene = new THREE.Scene();
+  const width = mount.clientWidth || 360;
+  const height = mount.clientHeight || 360;
+
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+  camera.position.z = 6.2;
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  mount.appendChild(renderer.domElement);
+
+  // Mark parent container to switch to Three.js mode
+  heroMoon.classList.add('has-three');
+
+  // 1. Group for 3D Head Turning
+  const moonGroup = new THREE.Group();
+  scene.add(moonGroup);
+
+  // Read design tokens from CSS custom properties
+  const rootStyles = getComputedStyle(document.documentElement);
+  const cssVar = (name) => rootStyles.getPropertyValue(name).trim();
+
+  // 2. Base Sphere — distinct 3D crescent shadow on bottom-right and radiant zenith highlight on top-left
+  const sphereMat = new THREE.MeshStandardMaterial({
+    color: 0xF4FAF2,
+    roughness: 0.55,
+    metalness: 0.02,
+  });
+  const moonSphere = new THREE.Mesh(new THREE.SphereGeometry(2.1, 64, 64), sphereMat);
+  moonGroup.add(moonSphere);
+
+  // 3D Scene Lighting:
+  // - Ambient base light: calibrated so the bottom-right crescent shadow is clearly visible
+  const ambLight = new THREE.AmbientLight(0x82A080, 0.48);
+  scene.add(ambLight);
+
+  // - Main Key Light from Top-Left (Zenith Light): casts distinct 3D crescent shadow on bottom-right
+  const keyLight = new THREE.DirectionalLight(0xFFFFFF, 1.45);
+  keyLight.position.set(-3.6, 3.6, 4.2);
+  scene.add(keyLight);
+
+  // - Subtle fill light to keep shadow luminous
+  const fillLight = new THREE.DirectionalLight(0x9AB896, 0.28);
+  fillLight.position.set(2.0, -3.0, 1.8);
+  scene.add(fillLight);
+
+  // 3. Face Planar Decal (Attached to front of moonGroup at z = 2.08 - ZERO DISTORTION)
+  const faceCanvas = document.createElement('canvas');
+  faceCanvas.width = 512;
+  faceCanvas.height = 512;
+  const fCtx = faceCanvas.getContext('2d');
+
+  const faceTex = new THREE.CanvasTexture(faceCanvas);
+  const faceMat = new THREE.MeshBasicMaterial({
+    map: faceTex,
+    transparent: true,
+    depthWrite: false,
+  });
+  const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 2.9), faceMat);
+  facePlane.position.z = 2.08;
+  moonGroup.add(facePlane);
+
+  // State Management
+  let mouseX = 0, mouseY = 0;
+  let targetRotX = 0, targetRotY = 0;
+  let isHovered = false;
+  let hoverProgress = 0; // 0 = alert/welcoming, 1 = super cute blissful meditating
+  let blinkProgress = 0; // 0 = open, 1 = closed
+  let isBlinking = false;
+  let lookOffsetX = 0, lookOffsetY = 0;
+
+  // Face colors from design tokens
+  const eyeColor = cssVar('--bg-deep') || '#020A05';
+  const cursorEl = document.getElementById('cursor');
+
+  // Render Crisp Face on 2D Planar Canvas (Proportional, open, expressive vertical spread)
+  function drawMoonTexture() {
+    fCtx.clearRect(0, 0, 512, 512);
+
+    // Center of canvas
+    const cx = 256, cy = 256;
+
+    // 1. Rosy-Ruby Glowing Blushes — ONLY appear on hover (cursor on face)
+    if (hoverProgress > 0.05) {
+      const blushAlpha = hoverProgress * 0.58;
+      const blushRx = 34 + hoverProgress * 10;
+      const blushRy = 20 + hoverProgress * 6;
+
+      // Left Blush — positioned below and outside the eyes
+      const bLx = cx - 100, bLy = cy + 16;
+      const bGradL = fCtx.createRadialGradient(bLx, bLy, 2, bLx, bLy, blushRx);
+      bGradL.addColorStop(0, `rgba(225, 95, 115, ${blushAlpha})`);
+      bGradL.addColorStop(1, 'rgba(225, 95, 115, 0)');
+      fCtx.fillStyle = bGradL;
+      fCtx.beginPath();
+      fCtx.ellipse(bLx, bLy, blushRx, blushRy, 0, 0, Math.PI * 2);
+      fCtx.fill();
+
+      // Right Blush
+      const bRx = cx + 100, bRy = cy + 16;
+      const bGradR = fCtx.createRadialGradient(bRx, bRy, 2, bRx, bRy, blushRx);
+      bGradR.addColorStop(0, `rgba(225, 95, 115, ${blushAlpha})`);
+      bGradR.addColorStop(1, 'rgba(225, 95, 115, 0)');
+      fCtx.fillStyle = bGradR;
+      fCtx.beginPath();
+      fCtx.ellipse(bRx, bRy, blushRx, blushRy, 0, 0, Math.PI * 2);
+      fCtx.fill();
+    }
+
+    // 2. Eyes — Soulful open eyes by default, morphing to closed joy arches (⌒ ⌒) on hover
+    const eyeSpacing = 72;
+    const eyeBaseLX = cx - eyeSpacing;
+    const eyeBaseRX = cx + eyeSpacing;
+    const eyeBaseY = cy - 54;
+    const eyeLX = eyeBaseLX + lookOffsetX * (1 - hoverProgress);
+    const eyeRX = eyeBaseRX + lookOffsetX * (1 - hoverProgress);
+    const eyeY = eyeBaseY + lookOffsetY * (1 - hoverProgress);
+
+    fCtx.strokeStyle = eyeColor;
+    fCtx.fillStyle = eyeColor;
+    fCtx.lineCap = 'round';
+
+    if (hoverProgress > 0.4) {
+      // Blissful Meditating Joy Arches (⌒ ⌒) — closed eyes on hover
+      const archW = 32;
+      const archH = 15 + (hoverProgress - 0.4) * 8;
+      fCtx.lineWidth = 6.5;
+
+      // Left Bliss Arch
+      fCtx.beginPath();
+      fCtx.moveTo(eyeLX - archW, eyeY + 4);
+      fCtx.quadraticCurveTo(eyeLX, eyeY - archH, eyeLX + archW, eyeY + 4);
+      fCtx.stroke();
+
+      // Right Bliss Arch
+      fCtx.beginPath();
+      fCtx.moveTo(eyeRX - archW, eyeY + 4);
+      fCtx.quadraticCurveTo(eyeRX, eyeY - archH, eyeRX + archW, eyeY + 4);
+      fCtx.stroke();
+    } else {
+      // Soulful Open Eyes with Organic Blink and Specular Catchlights (Default Idle)
+      const eyeRadius = 24;
+      const scaleY = isBlinking ? (1 - blinkProgress * 0.92) : 1.0;
+
+      // Left Eye
+      fCtx.save();
+      fCtx.translate(eyeLX, eyeY);
+      fCtx.scale(1, scaleY);
+      fCtx.beginPath();
+      fCtx.arc(0, 0, eyeRadius, 0, Math.PI * 2);
+      fCtx.fill();
+      if (scaleY > 0.4) {
+        fCtx.fillStyle = '#FFFFFF';
+        fCtx.beginPath();
+        fCtx.arc(-7, -7, 7.5, 0, Math.PI * 2);
+        fCtx.fill();
+        fCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        fCtx.beginPath();
+        fCtx.arc(6, 6, 3.5, 0, Math.PI * 2);
+        fCtx.fill();
+      }
+      fCtx.restore();
+
+      // Right Eye
+      fCtx.save();
+      fCtx.translate(eyeRX, eyeY);
+      fCtx.scale(1, scaleY);
+      fCtx.fillStyle = eyeColor;
+      fCtx.beginPath();
+      fCtx.arc(0, 0, eyeRadius, 0, Math.PI * 2);
+      fCtx.fill();
+      if (scaleY > 0.4) {
+        fCtx.fillStyle = '#FFFFFF';
+        fCtx.beginPath();
+        fCtx.arc(-7, -7, 7.5, 0, Math.PI * 2);
+        fCtx.fill();
+        fCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        fCtx.beginPath();
+        fCtx.arc(6, 6, 3.5, 0, Math.PI * 2);
+        fCtx.fill();
+      }
+      fCtx.restore();
+    }
+
+    // 3. Standout Sweet, Joyful Smile ◡ — Lowered for spacious vertical separation
+    const mouthY = cy + 62 + hoverProgress * 4;
+    const mouthW = 54 + hoverProgress * 8;
+    const mouthDepth = 26 + hoverProgress * 8;
+
+    fCtx.strokeStyle = eyeColor;
+    fCtx.lineWidth = 7.0 + hoverProgress * 1.5;
+    fCtx.beginPath();
+    fCtx.moveTo(cx - mouthW, mouthY);
+    fCtx.quadraticCurveTo(cx, mouthY + mouthDepth, cx + mouthW, mouthY);
+    fCtx.stroke();
+
+    // 4. Golden Sparkles on Hover (Pīti Aura)
+    if (hoverProgress > 0.3) {
+      const spAlpha = (hoverProgress - 0.3) / 0.7;
+      fCtx.fillStyle = `rgba(240, 200, 112, ${spAlpha * 0.9})`;
+
+      function drawSparkle(sx, sy, sz) {
+        fCtx.beginPath();
+        fCtx.moveTo(sx - sz, sy);
+        fCtx.quadraticCurveTo(sx, sy, sx, sy - sz);
+        fCtx.quadraticCurveTo(sx, sy, sx + sz, sy);
+        fCtx.quadraticCurveTo(sx, sy, sx, sy + sz);
+        fCtx.quadraticCurveTo(sx, sy, sx - sz, sy);
+        fCtx.fill();
+      }
+
+      drawSparkle(cx - 120, cy - 85, 11);
+      drawSparkle(cx + 125, cy - 95, 10);
+      drawSparkle(cx - 125, cy + 80, 9);
+      drawSparkle(cx + 125, cy + 75, 10);
+    }
+
+    faceTex.needsUpdate = true;
+  }
+
+  // Blinking Engine
+  function triggerBlink() {
+    if (hoverProgress > 0.5) {
+      scheduleNextBlink();
+      return;
+    }
+    isBlinking = true;
+    const startTime = performance.now();
+    const duration = 130;
+
+    function stepBlink(now) {
+      const elapsed = now - startTime;
+      if (elapsed < duration / 2) {
+        blinkProgress = elapsed / (duration / 2);
+      } else if (elapsed < duration) {
+        blinkProgress = 1 - (elapsed - duration / 2) / (duration / 2);
+      } else {
+        blinkProgress = 0;
+        isBlinking = false;
+        scheduleNextBlink();
+        return;
+      }
+      requestAnimationFrame(stepBlink);
+    }
+    requestAnimationFrame(stepBlink);
+  }
+
+  function scheduleNextBlink() {
+    const delay = 3200 + Math.random() * 4500;
+    setTimeout(triggerBlink, delay);
+  }
+  scheduleNextBlink();
+
+  // Mouse & Hover Listeners
+  const raycaster = new THREE.Raycaster();
+  const mouse2D = new THREE.Vector2();
+
+  function onPointerMove(e) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    // Normalized screen position for subtle 3D head turning
+    mouseX = (e.clientX - cx) / (window.innerWidth * 0.5);
+    mouseY = (e.clientY - cy) / (window.innerHeight * 0.5);
+
+    // Subtle Eye pupil shift
+    lookOffsetX = Math.max(-5, Math.min(5, mouseX * 5));
+    lookOffsetY = Math.max(-5, Math.min(5, mouseY * 5));
+
+    // Target 3D Rotation on moonGroup — gentle, natural, face stays centered
+    targetRotY = Math.max(-0.14, Math.min(0.14, mouseX * 0.12));
+    targetRotX = Math.max(-0.10, Math.min(0.10, mouseY * 0.09));
+
+    // Raycast for Hover on 3D Moon
+    mouse2D.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse2D.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse2D, camera);
+    const intersects = raycaster.intersectObjects([moonSphere, facePlane]);
+    isHovered = intersects.length > 0;
+
+    // Hide custom cursor when hovering over 3D moon so no white orb covers face
+    if (cursorEl) {
+      if (isHovered) {
+        cursorEl.classList.add('hidden');
+      } else {
+        cursorEl.classList.remove('hidden');
+      }
+    }
+  }
+
+  window.addEventListener('mousemove', onPointerMove, { passive: true });
+  renderer.domElement.addEventListener('mouseenter', () => {
+    isHovered = true;
+    if (cursorEl) cursorEl.classList.add('hidden');
+  });
+  renderer.domElement.addEventListener('mouseleave', () => {
+    isHovered = false;
+    if (cursorEl) cursorEl.classList.remove('hidden');
+  });
+
+  // Touch Support
+  window.addEventListener('touchmove', e => {
+    if (e.touches.length > 0) {
+      onPointerMove(e.touches[0]);
+    }
+  }, { passive: true });
+
+  // Animation Loop
+  let clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const elapsed = clock.getElapsedTime();
+
+    // Smooth 3D Rotation Lerp on moonGroup
+    moonGroup.rotation.y += (targetRotY - moonGroup.rotation.y) * 0.055;
+    moonGroup.rotation.x += (targetRotX - moonGroup.rotation.x) * 0.055;
+
+    // Gentle Floating Motion
+    moonGroup.position.y = Math.sin(elapsed * 0.8) * 0.08;
+
+    // Smooth Hover Transition
+    const targetHover = isHovered ? 1.0 : 0.0;
+    hoverProgress += (targetHover - hoverProgress) * 0.08;
+
+    // Scale on Hover
+    const targetScale = 1.0 + hoverProgress * 0.05;
+    moonGroup.scale.set(targetScale, targetScale, targetScale);
+
+    // Update Face Canvas Texture
+    drawMoonTexture();
+
+    renderer.render(scene, camera);
+  }
+
+  // Handle Resize
+  window.addEventListener('resize', () => {
+    const nw = mount.clientWidth || 360;
+    const nh = mount.clientHeight || 360;
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
+  });
+
+  animate();
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════════
    11. CARD AMBIENT GLOW (mouse-tracked radial)
    ══════════════════════════════════════════════════════════════════════ */
 (function initCardGlow() {
-  const selector = '.ccard, .pcard, .tcard, .mcard, .mtile';
+  const selector = '.ccard, .pcard, .tcard, .mcard, .mtile, .dana-block, .forest-stats';
   document.querySelectorAll(selector).forEach(card => {
     card.addEventListener('mousemove', e => {
       const r = card.getBoundingClientRect();
       const x = ((e.clientX - r.left) / r.width) * 100;
       const y = ((e.clientY - r.top) / r.height) * 100;
       card.style.background = `
-        radial-gradient(circle at ${x}% ${y}%, rgba(200,216,192,0.055) 0%, transparent 55%),
-        var(--bg-card)
+        radial-gradient(circle at ${x}% ${y}%, rgba(77, 191, 130, 0.08) 0%, transparent 55%),
+        var(--bg-glass-card-hover)
       `;
     });
     card.addEventListener('mouseleave', () => { card.style.background = ''; });
@@ -643,7 +1089,16 @@ makeCarousel({
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   15. SMOOTH FADE-IN ON LOAD
+   15. DYNAMIC COPYRIGHT YEAR
+   ══════════════════════════════════════════════════════════════════════ */
+(function initCopyrightYear() {
+  const yr = document.getElementById('current-year');
+  if (yr) yr.textContent = new Date().getFullYear();
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   16. SMOOTH FADE-IN ON LOAD
    ══════════════════════════════════════════════════════════════════════ */
 window.addEventListener('load', () => {
   document.body.style.opacity = '0';

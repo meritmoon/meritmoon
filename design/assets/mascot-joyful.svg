@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84" width="100%" height="100%">
+  <defs>
+    <!-- Rich 3D Spherical Lunar Gradient (Zenith Top-Left Highlight & Bottom-Right Crescent Shadow) -->
+    <radialGradient id="lunarSurfaceJoy" cx="36%" cy="28%" r="76%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="30%" stop-color="#F2F8F0"/>
+      <stop offset="58%" stop-color="#D0E2CC"/>
+      <stop offset="80%" stop-color="#A0BE9E"/>
+      <stop offset="100%" stop-color="#6B8E67"/>
+    </radialGradient>
+
+    <!-- Soft Rosy-Ruby Blush Filter -->
+    <filter id="blushBlurJoy" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.8"/>
+    </filter>
+  </defs>
+
+  <!-- Luminous 3D Moon Sphere (Zero Border Gaps) -->
+  <circle
+    cx="42"
+    cy="42"
+    r="42"
+    fill="url(#lunarSurfaceJoy)"
+  />
+
+  <!-- Facial Features (Joyful, happy, exciting with rosy blush) -->
+  <g id="mascot-face-joyful">
+    <!-- Left Smiling Eye (Peaceful curved arch ⌒) -->
+    <path
+      d="M 22.5 31 Q 29 23 35.5 31"
+      fill="none"
+      stroke="#0D1C10"
+      stroke-width="2.9"
+      stroke-linecap="round"
+    />
+
+    <!-- Right Smiling Eye (Peaceful curved arch ⌒) -->
+    <path
+      d="M 48.5 31 Q 55 23 61.5 31"
+      fill="none"
+      stroke="#0D1C10"
+      stroke-width="2.9"
+      stroke-linecap="round"
+    />
+
+    <!-- Standout Sweet, Warm, Joyful Smile ◡ -->
+    <path
+      d="M 30 48 Q 42 59 54 48"
+      fill="none"
+      stroke="#0D1C10"
+      stroke-width="3.3"
+      stroke-linecap="round"
+    />
+
+    <!-- Left Rosy-Ruby Blush -->
+    <ellipse
+      cx="20"
+      cy="39"
+      rx="6.5"
+      ry="3.5"
+      fill="#E15F73"
+      fill-opacity="0.38"
+      filter="url(#blushBlurJoy)"
+    />
+
+    <!-- Right Rosy-Ruby Blush -->
+    <ellipse
+      cx="64"
+      cy="39"
+      rx="6.5"
+      ry="3.5"
+      fill="#E15F73"
+      fill-opacity="0.38"
+      filter="url(#blushBlurJoy)"
+    />
+  </g>
+</svg>

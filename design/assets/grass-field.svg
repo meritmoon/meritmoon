@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 160" width="100%" height="100%" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="grassGrad1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0B2B18" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#05180D" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#020A05" stop-opacity="1.0"/>
+    </linearGradient>
+    <linearGradient id="grassGrad2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#061E10" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#010603" stop-opacity="1.0"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Gentle Grassy Knoll -->
+  <path fill="url(#grassGrad1)" d="
+    M 0 160
+    L 0 85
+    Q 180 50 380 75
+    Q 580 100 820 60
+    Q 1060 20 1260 65
+    Q 1380 90 1440 70
+    L 1440 160 Z
+  "/>
+  <!-- Foreground Grassy Meadow with Soft Blade Tufts -->
+  <path fill="url(#grassGrad2)" d="
+    M 0 160
+    L 0 105
+    Q 120 90 240 110
+    Q 360 128 500 95
+    Q 640 65 780 100
+    Q 920 130 1080 85
+    Q 1240 50 1360 90
+    Q 1410 105 1440 98
+    L 1440 160 Z
+  "/>
+</svg>
