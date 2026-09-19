@@ -830,14 +830,24 @@ strong {
 }
 
 .nav__pill {
+  position: relative !important;
+  overflow: visible !important;
+  font-family: var(--font-display) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
   padding: 9px 24px;
   border-radius: 50px;
   background: var(--grad-base-135) !important;
   color: var(--bg-deep) !important;
   -webkit-text-fill-color: var(--bg-deep) !important;
-  font-weight: 700 !important;
   border: 1px solid rgba(77, 191, 130, 0.4) !important;
   box-shadow: var(--glow-btn-primary) !important;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -1154,6 +1164,7 @@ strong {
   max-width: 36rem;
   margin: 0 auto;
 }
+
 
 .hero__kicker {
   font-family: var(--font-display);
@@ -2146,6 +2157,9 @@ strong {
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
   box-shadow: var(--shadow-glass-card);
   transition: transform 0.35s ease, background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .mcard:hover {
@@ -2240,6 +2254,7 @@ strong {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 32px;
+  flex: 1 1 auto;
 }
 
 .mcard__list li {
@@ -2266,6 +2281,11 @@ strong {
   opacity: 0.38;
 }
 
+.mcard > .btn {
+  margin-top: auto;
+  min-height: 52px;
+}
+
 .mcard__foot {
   margin-top: 16px;
   font-size: 0.78rem;
@@ -2273,6 +2293,10 @@ strong {
   line-height: 1.6;
   text-align: center;
   font-style: italic;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Dana block */
@@ -2717,6 +2741,8 @@ strong {
 }
 
 .store-btn {
+  position: relative;
+  overflow: visible;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -2768,6 +2794,44 @@ strong {
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
+
+/* ── WAITLIST FORM ────────────────────────────────────────────────────────── */
+.waitlist-form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  max-width: 520px;
+  margin: 0 auto 28px;
+  width: 100%;
+}
+
+.waitlist-input {
+  flex: 1;
+  padding: 14px 22px;
+  border-radius: 50px;
+  background: rgba(2, 10, 5, 0.75);
+  border: 1px solid var(--border-glass);
+  color: var(--text-light);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  min-height: 52px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.waitlist-input:focus {
+  border-color: var(--emerald-bright);
+  box-shadow: 0 0 14px rgba(77, 191, 130, 0.3);
+}
+
+.waitlist-status {
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  color: var(--emerald-bright);
+  text-align: center;
+}
+
 
 /* ── FOOTER ─────────────────────────────────────────────────────────────── */
 .footer {
@@ -3112,6 +3176,12 @@ strong {
 
   .mobile-only {
     display: block;
+  }
+
+  .waitlist-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
   }
 }
 

@@ -19,6 +19,140 @@ const C = {
   bgDeep: '#020A05',
 };
 
+/* ═══════════════════════════════════════════════════════════════════════
+   SITE CONFIGURATION & DYNAMIC CONTENT
+   Easily toggle between 'waitlist' and 'live' modes
+   ═══════════════════════════════════════════════════════════════════════ */
+const SITE_CONFIG = {
+  mode: 'live', // 'waitlist' | 'live'
+  storeLinks: {
+    appStore: 'https://apps.apple.com/app/meritmoon',
+    googlePlay: 'https://play.google.com/store/apps/details?id=com.meritmoon.app',
+  },
+  waitlist: {
+    title: 'MeritMoon — A Kinder Mind Changes Everything | Founding Waitlist Open',
+    navCta: { text: 'Join Waitlist', href: '#download' },
+    heroCta: { text: 'Join Waitlist', href: '#download', leaf: '🌿' },
+    freeCta: { text: 'Join Waitlist', href: '#download' },
+    paidCta: { text: 'Join Waitlist', href: '#download', leaf: '☽' },
+    ctaBody: 'MeritMoon is arriving soon. Join our waiting list to be the first to practice with us when the moon rises.<br> Shall we begin?',
+  },
+  live: {
+    title: 'MeritMoon — A Kinder Mind Changes Everything | Discipline-First Meditation',
+    navCta: { text: 'Begin', href: '#download' },
+    heroCta: { text: "Begin — It's Free", href: '#download', leaf: '🌿' },
+    freeCta: { text: 'Begin the Forest Path', href: '#download' },
+    paidCta: { text: 'Begin the Moonlit Path', href: '#download', leaf: '☽' },
+    ctaBody: 'MeritMoon is waiting for you — not to fix you, not to optimise you, but simply to hold your hand along the journey.<br> Shall we begin?',
+  },
+};
+
+// Helper to update button text without destroying .btn-firefly-swarm or other non-text child nodes
+function updateBtnTextAndLeaf(btn, text, leaf) {
+  if (!btn) return;
+  const textSpan = btn.querySelector('.nav__pill-text') || btn.querySelector('span:not(.btn__leaf)') || btn.querySelector('span');
+  if (textSpan) {
+    textSpan.textContent = text;
+  } else {
+    const span = document.createElement('span');
+    span.textContent = text;
+    btn.insertBefore(span, btn.firstChild);
+  }
+  if (leaf !== undefined) {
+    let leafSpan = btn.querySelector('.btn__leaf');
+    if (!leafSpan && leaf) {
+      leafSpan = document.createElement('span');
+      leafSpan.className = 'btn__leaf';
+      btn.appendChild(leafSpan);
+    }
+    if (leafSpan) leafSpan.textContent = leaf;
+  }
+}
+
+function applySiteConfig(mode) {
+  const currentMode = mode || SITE_CONFIG.mode || 'waitlist';
+  const data = SITE_CONFIG[currentMode] || SITE_CONFIG.waitlist;
+
+  if (data.title) document.title = data.title;
+
+  // Navbar CTA
+  const navCta = document.getElementById('nav-cta');
+  if (navCta && data.navCta) {
+    navCta.setAttribute('href', data.navCta.href);
+    updateBtnTextAndLeaf(navCta, data.navCta.text);
+  }
+
+  // Hero Primary CTA
+  const heroCta = document.getElementById('hero-cta-primary');
+  if (heroCta && data.heroCta) {
+    heroCta.setAttribute('href', data.heroCta.href);
+    updateBtnTextAndLeaf(heroCta, data.heroCta.text, data.heroCta.leaf);
+  }
+
+  // Pricing Cards
+  const freeCta = document.getElementById('mcard-cta-free');
+  if (freeCta && data.freeCta) {
+    freeCta.textContent = data.freeCta.text;
+    freeCta.setAttribute('href', data.freeCta.href);
+  }
+
+  const paidCta = document.getElementById('mcard-cta-paid');
+  if (paidCta && data.paidCta) {
+    paidCta.setAttribute('href', data.paidCta.href);
+    updateBtnTextAndLeaf(paidCta, data.paidCta.text, data.paidCta.leaf);
+  }
+
+  // CTA Section
+  const ctaBody = document.getElementById('cta-body');
+  if (ctaBody && data.ctaBody) {
+    ctaBody.innerHTML = data.ctaBody;
+  }
+
+  const waitlistForm = document.getElementById('waitlist-form');
+  const ctaStores = document.getElementById('cta-stores');
+  const appleLink = document.getElementById('footer-link-apple');
+  const googleLink = document.getElementById('footer-link-google');
+
+  if (currentMode === 'waitlist') {
+    if (waitlistForm) waitlistForm.style.display = 'flex';
+    if (ctaStores) ctaStores.style.display = 'none';
+    if (appleLink) appleLink.setAttribute('href', '#download');
+    if (googleLink) googleLink.setAttribute('href', '#download');
+  } else {
+    if (waitlistForm) waitlistForm.style.display = 'none';
+    if (ctaStores) ctaStores.style.display = 'flex';
+    if (appleLink) appleLink.setAttribute('href', SITE_CONFIG.storeLinks.appStore);
+    if (googleLink) googleLink.setAttribute('href', SITE_CONFIG.storeLinks.googlePlay);
+    const ctaApple = document.getElementById('cta-store-apple');
+    if (ctaApple) ctaApple.setAttribute('href', SITE_CONFIG.storeLinks.appStore);
+    const ctaGoogle = document.getElementById('cta-store-google');
+    if (ctaGoogle) ctaGoogle.setAttribute('href', SITE_CONFIG.storeLinks.googlePlay);
+  }
+
+  // Ensure button firefly swarms remain attached & active after config application
+  if (typeof window.initButtonFireflies === 'function') {
+    window.initButtonFireflies();
+  }
+}
+
+// Global preview/test switcher for browser console
+window.setMeritMoonMode = function (mode) {
+  if (mode !== 'waitlist' && mode !== 'live') {
+    console.warn(`[MeritMoon] Unknown mode: "${mode}". Valid options: 'waitlist' | 'live'`);
+    return;
+  }
+  SITE_CONFIG.mode = mode;
+  applySiteConfig(mode);
+  console.log(`[MeritMoon] Switched site mode to: "${mode}"`);
+};
+
+// Initial synchronous or DOMContentLoaded binding
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => applySiteConfig(SITE_CONFIG.mode));
+} else {
+  applySiteConfig(SITE_CONFIG.mode);
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    1. FOREST + STARS CANVAS
    Layered: deep night sky gradient → stars → faint star clusters →
@@ -485,11 +619,16 @@ const C = {
     })(start);
   }
 
+  window.__animateNum = animateNum;
+
   const cObs = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (!e.isIntersecting) return;
       const t = parseInt(e.target.dataset.target, 10);
-      if (!isNaN(t)) animateNum(e.target, t);
+      if (!isNaN(t)) {
+        e.target.dataset.animated = 'true';
+        animateNum(e.target, t);
+      }
       cObs.unobserve(e.target);
     });
   }, { threshold: 0.5 });
@@ -1020,98 +1159,135 @@ makeCarousel({
    - Wander and hover gently around the button perimeter
    - Float away slowly into the night when cursor leaves (same gentle speed)
    ══════════════════════════════════════════════════════════════════════ */
-(function initButtonFireflies() {
-  const buttons = document.querySelectorAll('.btn--forest, .nav__pill, .store-btn');
-  if (!buttons.length) return;
+function attachButtonFireflySwarm(btn) {
+  if (!btn) return;
 
-  buttons.forEach(btn => {
-    // Ensure parent button is positioned
-    if (getComputedStyle(btn).position === 'static') {
-      btn.style.position = 'relative';
-    }
+  // Ensure parent button is positioned
+  if (getComputedStyle(btn).position === 'static') {
+    btn.style.position = 'relative';
+  }
 
-    const swarmWrap = document.createElement('div');
+  // If already attached and container is still inside the DOM, reuse
+  if (btn._ffState && btn.querySelector('.btn-firefly-swarm')) {
+    return;
+  }
+
+  let swarmWrap = btn.querySelector('.btn-firefly-swarm');
+  if (!swarmWrap) {
+    swarmWrap = document.createElement('div');
     swarmWrap.className = 'btn-firefly-swarm';
     swarmWrap.setAttribute('aria-hidden', 'true');
     btn.appendChild(swarmWrap);
+  } else {
+    swarmWrap.innerHTML = '';
+  }
 
-    const fireflyCount = 5;
-    const flies = [];
+  const fireflyCount = 5;
+  const flies = [];
 
-    for (let i = 0; i < fireflyCount; i++) {
-      const fly = document.createElement('div');
-      fly.className = 'btn-firefly';
-      const isEmerald = i % 2 === 0;
-      fly.classList.add(isEmerald ? 'btn-firefly--emerald' : 'btn-firefly--gold');
-      swarmWrap.appendChild(fly);
+  for (let i = 0; i < fireflyCount; i++) {
+    const fly = document.createElement('div');
+    fly.className = 'btn-firefly';
+    const isEmerald = i % 2 === 0;
+    fly.classList.add(isEmerald ? 'btn-firefly--emerald' : 'btn-firefly--gold');
+    swarmWrap.appendChild(fly);
 
-      flies.push({
-        el: fly,
-        angle: (i / fireflyCount) * Math.PI * 2,
-        speed: 0.0016 + Math.random() * 0.0012,
-        radiusX: 24 + Math.random() * 28,
-        radiusY: 12 + Math.random() * 18,
-        orbitCenterX: (Math.random() - 0.5) * 45,
-        orbitCenterY: (Math.random() - 0.5) * 16,
-        wobbleSpeed: 0.0025 + Math.random() * 0.002,
-        wobblePhase: Math.random() * Math.PI * 2,
-        driftOutX: (Math.random() - 0.5) * 80,
-        driftOutY: -(25 + Math.random() * 55),
-        fadeProgress: 0,
-      });
+    flies.push({
+      el: fly,
+      angle: (i / fireflyCount) * Math.PI * 2,
+      speed: 0.0016 + Math.random() * 0.0012,
+      radiusX: 24 + Math.random() * 28,
+      radiusY: 12 + Math.random() * 18,
+      orbitCenterX: (Math.random() - 0.5) * 45,
+      orbitCenterY: (Math.random() - 0.5) * 16,
+      wobbleSpeed: 0.0025 + Math.random() * 0.002,
+      wobblePhase: Math.random() * Math.PI * 2,
+      driftOutX: (Math.random() - 0.5) * 80,
+      driftOutY: -(25 + Math.random() * 55),
+      fadeProgress: 0,
+    });
+  }
+
+  const state = {
+    isHovering: false,
+    animId: null,
+    swarmWrap,
+    flies,
+  };
+
+  btn._ffState = state;
+
+  function renderSwarm(time) {
+    // Fail-safe auto-heal: if swarm was detached from button, re-attach immediately
+    if (!btn.contains(state.swarmWrap)) {
+      btn.appendChild(state.swarmWrap);
     }
 
-    let isHovering = false;
-    let animId = null;
+    let anyVisible = false;
 
-    function renderSwarm(time) {
-      let anyVisible = false;
+    state.flies.forEach((f, idx) => {
+      // Smooth entering and gentle dispersal transition
+      const targetFade = state.isHovering ? 1.0 : 0.0;
+      const fadeSpeed = state.isHovering ? 0.04 : 0.022; // Gentle, natural speed
+      f.fadeProgress += (targetFade - f.fadeProgress) * fadeSpeed;
 
-      flies.forEach((f, idx) => {
-        // Smooth entering and gentle dispersal transition
-        const targetFade = isHovering ? 1.0 : 0.0;
-        const fadeSpeed = isHovering ? 0.04 : 0.022; // Gentle, natural speed
-        f.fadeProgress += (targetFade - f.fadeProgress) * fadeSpeed;
+      if (f.fadeProgress > 0.01) {
+        anyVisible = true;
+        f.el.style.opacity = Math.min(1, f.fadeProgress * 1.05).toFixed(3);
 
-        if (f.fadeProgress > 0.01) {
-          anyVisible = true;
-          f.el.style.opacity = Math.min(1, f.fadeProgress * 1.05).toFixed(3);
+        // Harmonic wandering orbit around the button perimeter
+        const currentAngle = time * f.speed + f.angle;
+        const wobble = Math.sin(time * f.wobbleSpeed + f.wobblePhase) * 9;
 
-          // Harmonic wandering orbit around the button perimeter
-          const currentAngle = time * f.speed + f.angle;
-          const wobble = Math.sin(time * f.wobbleSpeed + f.wobblePhase) * 9;
+        // When cursor leaves, gently drift outward into the night sky
+        const disperseDist = 1 - f.fadeProgress;
+        const posX = Math.cos(currentAngle) * (f.radiusX + wobble) + f.orbitCenterX + (f.driftOutX * disperseDist);
+        const posY = Math.sin(currentAngle * 1.4) * (f.radiusY + wobble) + f.orbitCenterY + (f.driftOutY * disperseDist);
 
-          // When cursor leaves, gently drift outward into the night sky
-          const disperseDist = 1 - f.fadeProgress;
-          const posX = Math.cos(currentAngle) * (f.radiusX + wobble) + f.orbitCenterX + (f.driftOutX * disperseDist);
-          const posY = Math.sin(currentAngle * 1.4) * (f.radiusY + wobble) + f.orbitCenterY + (f.driftOutY * disperseDist);
+        // Soft organic breathing pulse
+        const pulse = 0.85 + Math.sin(time * 0.0035 + idx * 1.3) * 0.35;
 
-          // Soft organic breathing pulse
-          const pulse = 0.85 + Math.sin(time * 0.0035 + idx * 1.3) * 0.35;
-
-          f.el.style.transform = `translate3d(calc(-50% + ${posX.toFixed(1)}px), calc(-50% + ${posY.toFixed(1)}px), 0) scale(${pulse.toFixed(2)})`;
-        } else {
-          f.el.style.opacity = '0';
-        }
-      });
-
-      if (anyVisible || isHovering) {
-        animId = requestAnimationFrame(renderSwarm);
+        f.el.style.transform = `translate3d(calc(-50% + ${posX.toFixed(1)}px), calc(-50% + ${posY.toFixed(1)}px), 0) scale(${pulse.toFixed(2)})`;
       } else {
-        animId = null;
+        f.el.style.opacity = '0';
       }
-    }
+    });
 
+    if (anyVisible || state.isHovering) {
+      state.animId = requestAnimationFrame(renderSwarm);
+    } else {
+      state.animId = null;
+    }
+  }
+
+  if (!btn._ffListenerAttached) {
     btn.addEventListener('mouseenter', () => {
-      isHovering = true;
-      if (!animId) animId = requestAnimationFrame(renderSwarm);
+      if (!btn._ffState) return;
+      btn._ffState.isHovering = true;
+      if (!btn._ffState.animId) {
+        btn._ffState.animId = requestAnimationFrame(renderSwarm);
+      }
     });
 
     btn.addEventListener('mouseleave', () => {
-      isHovering = false;
+      if (!btn._ffState) return;
+      btn._ffState.isHovering = false;
     });
-  });
-})();
+
+    btn._ffListenerAttached = true;
+  }
+}
+
+window.initButtonFireflies = function () {
+  const buttons = document.querySelectorAll('.btn--forest, .nav__pill, .store-btn');
+  buttons.forEach(btn => attachButtonFireflySwarm(btn));
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => window.initButtonFireflies());
+} else {
+  window.initButtonFireflies();
+}
 
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1168,3 +1344,68 @@ window.addEventListener('load', () => {
     document.body.style.opacity = '1';
   }));
 });
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   17. FORMSPREE WAITLIST SUBMISSION
+   ══════════════════════════════════════════════════════════════════════ */
+(function initWaitlist() {
+  const form = document.getElementById('waitlist-form');
+  const emailInput = document.getElementById('waitlist-email');
+  const submitBtn = document.getElementById('waitlist-submit');
+  const statusEl = document.getElementById('waitlist-status');
+
+  if (!form || !emailInput || !submitBtn) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (emailInput.value || '').trim();
+    if (!email) return;
+
+    const textSpan = submitBtn.querySelector('span:not(.btn__leaf)') || submitBtn.querySelector('span');
+    const originalText = textSpan ? textSpan.textContent : 'Join Waitlist';
+
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.75';
+    if (textSpan) textSpan.textContent = 'Reserving...';
+
+    try {
+      const response = await fetch('https://formspree.io/f/xeaoowbb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        form.style.display = 'none';
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.color = 'var(--emerald-bright)';
+          statusEl.textContent = '✦ Welcome to the circle. Your place is kept on our waiting list.';
+        }
+      } else {
+        const data = await response.json().catch(() => ({}));
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.color = 'var(--ruby-bright)';
+          statusEl.textContent = data.error || 'Something went wrong. Please try again.';
+        }
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
+        if (textSpan) textSpan.textContent = originalText;
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--ruby-bright)';
+        statusEl.textContent = 'Connection error. Please try again in a moment.';
+      }
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '';
+      if (textSpan) textSpan.textContent = originalText;
+    }
+  });
+})();

@@ -100,7 +100,7 @@
         <li><a href="#courses">Courses</a></li>
         <li><a href="#merit">Choose Your Path</a></li>
         <li><a href="#voices">Stories</a></li>
-        <li><a href="#download" class="nav__pill">Begin</a></li>
+        <li><a href="#download" class="nav__pill" id="nav-cta"><span class="nav__pill-text">Begin</span></a></li>
       </ul>
 
       <button class="hamburger" id="hamburger" aria-label="menu">
@@ -132,13 +132,13 @@
           Pay with either discipline or devotion.
         </p>
         <div class="hero__cta-row reveal-fade" data-d="580">
-          <a href="#download" class="btn btn--forest">
+          <a href="#download" class="btn btn--forest" id="hero-cta-primary">
             <span>Begin — It's Free</span>
             <span class="btn__leaf">🌿</span>
           </a>
           <a href="#how" class="btn btn--ghost">See How It Works</a>
         </div>
-        <div class="hero__proof reveal-fade" data-d="680">
+        <div class="hero__proof reveal-fade" id="hero-proof-pills" data-d="680">
           <div class="proof-pill">
             <span class="proof-dot"></span>
             <span>47,000+ growing minds right now</span>
@@ -248,7 +248,7 @@
 
       </div>
 
-      <div class="forest-stats reveal-fade" data-d="0">
+      <div class="forest-stats reveal-fade" id="forest-stats" data-d="0">
         <div class="fstat">
           <span class="fstat__num" data-target="47283">0</span>
           <span class="fstat__label">Minds growing daily</span>
@@ -516,7 +516,7 @@
             <li class="mnone"><span>—</span>Streak shield for life's interruptions</li>
             <li class="mnone"><span>—</span>Supporting meditation teachers</li>
           </ul>
-          <a href="#download" class="btn btn--ghost btn--full">Begin the Forest Path</a>
+          <a href="#download" class="btn btn--ghost btn--full" id="mcard-cta-free">Begin the Forest Path</a>
           <p class="mcard__foot">Your presence is the only thing we ask. It's enough.</p>
         </div>
 
@@ -543,7 +543,7 @@
             <li><span class="mcheck mcheck--gold">✦</span>Your name in our monthly gratitude dedication</li>
             <li><span class="mcheck mcheck--gold">✦</span>First to receive every new course we make</li>
           </ul>
-          <a href="#download" class="btn btn--forest btn--full">
+          <a href="#download" class="btn btn--forest btn--full" id="mcard-cta-paid">
             <span>Begin the Moonlit Path</span>
             <span class="btn__leaf">☽</span>
           </a>
@@ -574,7 +574,7 @@
         <p class="dana-sub">
         Even when life becomes busy, your membership continues nurturing the people who preserve and create these practices. While you care for your own life, MeritMoon quietly continues caring for the path that has cared for so many.
         </p>
-        <div class="dana-stats">
+        <div class="dana-stats" id="dana-stats">
           <div class="dstat">
             <span class="dstat__n">$48,200</span>
             <span class="dstat__l">reached teachers this year</span>
@@ -632,8 +632,8 @@
   <!-- ══════════════════════════ TESTIMONIALS ═════════════════════════════ -->
   <section class="voices" id="voices">
     <div class="container">
-      <div class="eyebrow">Whispers Beneath the Moon</div>
-      <h2 class="section-title">Real People.<br/><span class="grad-text">Real Peace.</span></h2>
+      <div class="eyebrow" id="voices-eyebrow">Whispers Beneath the Moon</div>
+      <h2 class="section-title" id="voices-title">Real People.<br/><span class="grad-text">Real Peace.</span></h2>
     </div>
 
     <div class="testi-outer" id="testi-carousel">
@@ -718,23 +718,45 @@
       <div class="cta-moonbeam-pool"></div>
     </div>
     <div class="container cta-content">
-      <div class="eyebrow">The Moon awaits you</div>
-      <h2 class="section-title">
+      <div class="eyebrow" id="cta-eyebrow">The Moon awaits you</div>
+      <h2 class="section-title" id="cta-title">
         Close your eyes.<br/>
         Take a deep breath.<br/>
         <span class="grad-text">You are already enough.</span>
       </h2>
-      <p class="section-body">MeritMoon is waiting for you — not to fix you, not to optimise you, but simply to hold your hand along the journey. <br> Shall we begin?</p>
-      <div class="cta-stores">
-        <a href="#" class="store-btn">
+      <p class="section-body" id="cta-body">MeritMoon is waiting for you — not to fix you, not to optimise you, but simply to hold your hand along the journey. <br> Shall we begin?</p>
+
+      <!-- Waitlist form (active in waitlist mode, ready to accept emails via Formspree) -->
+      <form id="waitlist-form" class="waitlist-form" action="https://formspree.io/f/xeaoowbb" method="POST">
+        <input
+          type="email"
+          name="email"
+          id="waitlist-email"
+          class="waitlist-input"
+          placeholder="Enter your email address..."
+          required
+          autocomplete="email"
+          aria-label="Email address for waiting list"
+        />
+        <button type="submit" class="btn btn--forest" id="waitlist-submit">
+          <span>Join Waitlist</span>
+          <span class="btn__leaf">🌿</span>
+        </button>
+      </form>
+      <div id="waitlist-status" class="waitlist-status" style="display: none;"></div>
+
+      <!-- Live App Store Download Buttons (Active in live mode) -->
+      <div class="cta-stores" id="cta-stores" style="display: none;">
+        <a href="#" class="store-btn" id="cta-store-apple">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" fill="currentColor"/></svg>
           <div><small>Download on the</small><strong>App Store</strong></div>
         </a>
-        <a href="#" class="store-btn">
+        <a href="#" class="store-btn" id="cta-store-google">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3.18 23.76a2.5 2.5 0 0 0 2.73-.3l13.05-7.53-3.36-3.36-12.42 11.19zm-1.7-20.2C1.18 3.97 1 4.5 1 5.1v13.8c0 .6.18 1.13.48 1.54l.08.08L9.3 12.5v-.17L1.56 3.48l-.08.08zM20.49 10.8l-2.79-1.6-3.14 3.14 3.14 3.14 2.81-1.62a2.5 2.5 0 0 0 0-4.06zM3.18.24L16.23 7.77l-3.36 3.36L.53.54A2.5 2.5 0 0 1 3.18.24z" fill="currentColor"/></svg>
           <div><small>Get it on</small><strong>Google Play</strong></div>
         </a>
       </div>
+
       <p class="cta-whisper">Free to begin. Forever to keep. Merit to Earn.</p>
     </div>
   </section>
@@ -784,13 +806,13 @@
     <div class="footer__bottom">
       <p>© <span id="current-year">2026</span> MeritMoon. Built with love. All merit offered to all beings, everywhere.</p>
       <div class="footer__app-links">
-        <a href="#">App Store</a>
-        <a href="#">Google Play</a>
+        <a href="#" id="footer-link-apple">App Store</a>
+        <a href="#" id="footer-link-google">Google Play</a>
       </div>
       <p>
         MeritMoon is a digital meditation subscription service operated by Meritbox. During our rebranding, some payment records and legal documents may display the name Meritbox.
       </p>
-      </div>
+    </div>
   </footer>
 
   <!-- Three.js for Interactive 3D Mindful Moon Mascot -->
