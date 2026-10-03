@@ -6,16 +6,36 @@
 
 ## Terminology
 
-> For the comprehensive master lexicon, forbidden terminology, Burmese translations, and copywriting guidelines, see [`vocabulary.md`](./vocabulary.md). For visual mascot blueprints, expressions, and animation models, see [`mascot-guidelines.md`](./mascot-guidelines.md).
+> For the comprehensive master lexicon, forbidden terminology, Burmese translations, and copywriting guidelines, see [`vocabulary.md`](./vocabulary.md). For visual mascot blueprints, expressions, and animation models, see [`mascot-guidelines.md`](./mascot-guidelines.md). For database tables and access policies, see [`schema.md`](./schema.md).
 
-| Term            | Meaning                                                                                                                                                                                                                                       |
-| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Merits**      | The fundamental measure of course progress and spiritual cultivation (Day Merits, Course Merits). Replaces arbitrary points or streak numbers.                                                                                                |
-| **Reset**       | Automatic. Triggered when a Forest Path user fails to complete a day's sessions before midnight cutoff. Course active merits return to Day 1. The server remembers max merits reached so taking the Moonlit Path restores them.               |
-| **Restart**     | Intentional. User chooses to start a course over from scratch to earn again merits. All active merits reset to Day 1. Lifetime accomplishment records are preserved, but active ownership of an OWNED ✓ course is removed until re-completed. |
-| **Owned ✓**     | A course completed through its final day. Unlocked in the practitioner's permanent sanctuary. Can be retaken or freely re-listened.                                                                                                           |
-| **User Voices** | Text comments written by practitioners for each day of practice. "Voice" is the poetic name for the practitioner's authentic written reflection.                                                                                              |
-| **Dana**        | Generosity offering. The portion of Moonlit subscription revenue flowing directly to meditation teachers and centers. _Dana is powered as a merit_, which is why Moonlit practitioners never lose their course merits.                        |
+| Term | Meaning |
+| :--- | :--- |
+| **Meditator** | A person cultivating the mind through daily meditation. Replaces "User" and "Practitioner". |
+| **A Meditator** | The respectful public display name when a meditator masks their name in The Circle (Master still sees their true identity). |
+| **Path** | The complete meditation curriculum spanning $N$ nights (e.g., *Pa-Auk Foundations*, 30 Nights). Replaces "Course". |
+| **Night** | The sequential nocturnal stage along an enrolled path (e.g., *Night 3 of 30*). Replaces "Day". |
+| **Sit** | The discrete individual practice unit within a night (e.g., *"Sit 1 of 2"*). Prescribed in `sits` table. |
+| **Sit Record** | The verified log of a completed sit session (`sit_records` table). Directly proves eligibility to enter The Circle. |
+| **Master** | The venerable meditation master guiding the path (`masters` table). If ordained (`monastic: true`), addressed as **Sayadaw** or **Venerable**; if lay master, addressed as **Master**. |
+| **Guidance** | Spoken audio instruction paired with an elemental 1-sentence real-time text reveal. Audio presence is strictly Master-determined; meditators follow along without toggle bypass. Replaces "Live Transcript". |
+| **Chime** | The peaceful monastery chime sounded when a Sit completes. Replaces "Alarm" or "Bell". |
+| **Merits** | The fundamental measure of spiritual cultivation (*Pāramī*): lifetime hours sat, completed sits, and Dana given. Never transactional credits or casino coins. |
+| **Present Night** | The active nocturnal milestone currently being walked (e.g., *"Night 14 of 30"*). Returns to Night 1 on missed 4:00 AM dawn (Forest) or Begin Anew. In codebase: `present_night`. |
+| **Return** | Automatic event. Occurs when a Forest Path meditator fails to complete a night's Sits before 4:00 AM dawn. Active path progress returns to Night 1. Server stores highest night reached for Moonlit recovery. In codebase: `return` / `returned_at`. |
+| **Begin Anew** | Intentional action. Meditator chooses to begin anew from scratch with a beginner's mind. Active progress returns to Night 1. Historical accomplishment records are preserved. In codebase: `begin_anew` (no legacy). |
+| **Complete** | A path completed through its final night. Permanently unlocked in the meditator's sanctuary. Can be retaken or freely re-listened. Complete paths never return to Night 1 automatically, even if changing paths or switching to the Forest path. |
+| **Preparation** | Mindful posture, terminology, and room orientation before closing eyes. Replaces "Pre-Text". |
+| **Reflection** | Authentic text report written immediately after completing a Sit, sharing sensations, stillness, or mental clarity (`sit_reflections`). |
+| **Doubt** | A practice obstacle or uncertainty brought to the Master regarding technique, breath anchoring, or hindrances (`sit_doubts`). Cleared when an Insight is linked (no loose status column). |
+| **Insight** | The Master's compassionate, wise answer and teaching clearing the meditator's doubt (`sit_insights`). Reusable library item that can be assigned to multiple similar doubts. |
+| **The Circle** | The sacred community space dedicated to a specific Sit, showing meditators' reflections, doubts, and the Master's insights. In code: `circle`. |
+| **Awaiting** | The welcoming state of The Circle before tonight's Sit is complete. Free of any feeling of discrimination or ranking. Simply awaits your sit tonight to open. |
+| **Open** | The active state of The Circle once tonight's Sit is complete. |
+| **4:00 AM Dawn** | The fixed 4:00 AM local time nocturnal boundary anchored at path enrollment (`dawn: "04:00"`). Non-customizable. Does not drift when traveling. |
+| **Nightfall** | The gentle evening push reminder alerting meditators to sit before 4:00 AM dawn (*"Night is falling..."*). |
+| **Sitting Now** | Real-time live counter of meditators actively practicing worldwide at this exact moment in Sanctuary. |
+| **Nature** | Mental nature addressed across the path and within each night. Centralized and consistent, rooted in the canonical Theravada 6 Carita (*Cha-carita* / စရိုက် ၆ ပါး). Paths feature a single sorted `natures` array (first entry is primary); each night targets its specific `nature`. Uniform `-ing` participle cadence: `anger_calming`, `greed_subduing`, `restlessness_stilling`, `confusion_clearing`, `wisdom_inquiring`, `faith_inspiring`. |
+| **Dana** | Generosity offering. The portion of Moonlit subscription revenue flowing directly to meditation masters and monasteries. _Dana is powered as a merit_, which is why Moonlit meditators never lose their path progress. |
 
 ---
 
@@ -28,52 +48,56 @@
   - [🛤️ 2. Two Paths](#️-2-two-paths)
     - [The Forest Path (Free)](#the-forest-path-free)
     - [The Moonlit Path ($9.99/month)](#the-moonlit-path-999month)
-    - [Moonlit Recovery — Restoring Merits After a Reset](#moonlit-recovery--restoring-merits-after-a-reset)
-  - [🪷 3. The Merits System \& Progress](#-3-the-merits-system--progress)
-  - [📚 4. Course System \& Masterclasses](#-4-course-system--masterclasses)
-    - [Course Structure](#course-structure)
+    - [The "Moonlit Promise" \& No-Marketplace Policy](#-the-moonlit-promise--no-marketplace-policy)
+    - [Moonlit Recovery — Restoring Merits After a Return](#moonlit-recovery--restoring-merits-after-a-return)
+  - [🪷 3. The Merits System: Cultivation, Not Credits](#-3-the-merits-system-cultivation-not-credits)
+  - [📚 4. Meditation Paths \& Curricula](#-4-meditation-paths--curricula)
+    - [Traditions (Upanissaya) \& Monasteries](#traditions-upanissaya--monasteries)
+    - [Character Dispositions (*Carita*)](#character-dispositions-carita)
+    - [Multi-Master Collaboration \& Roles](#multi-master-collaboration--roles)
+    - [Path Structure: Path $\rightarrow$ Night $\rightarrow$ Sit](#path-structure-path--night--sit)
     - [Content Types](#content-types)
     - [Masterclasses](#masterclasses)
-    - [User Voice Comments](#user-voice-comments)
-    - [Course Display (Tab 2: Courses)](#course-display-tab-2-courses)
-  - [🧘 5. Session Mechanics \& Live Transcript](#-5-session-mechanics--live-transcript)
-    - [Starting a Session](#starting-a-session)
-    - [During a Session](#during-a-session)
-    - [Daily Cycle \& Midnight Cutoff](#daily-cycle--midnight-cutoff)
-  - [🔄 6. Reset, Restart \& Course Ownership](#-6-reset-restart--course-ownership)
-    - [Reset vs. Restart](#reset-vs-restart)
-    - [Restarting an OWNED ✓ Course](#restarting-an-owned--course)
-  - [🔀 7. Single Enrollment \& Switching](#-7-single-enrollment--switching)
-    - [Format Options](#format-options)
-  - [🙏 8. Dana Impact System](#-8-dana-impact-system)
+    - [Paths Display (Tab 2: Paths)](#paths-display-tab-2-paths)
+  - [🧘 5. Sit Mechanics \& Guidance](#-5-sit-mechanics--guidance)
+    - [Starting a Sit (Tab 3: Sit)](#starting-a-sit-tab-3-sit)
+    - [During a Sit](#during-a-sit)
+    - [Nightly Cycle, 4:00 AM Dawn Cutoff \& Nightfall](#nightly-cycle-400-am-dawn-cutoff--nightfall)
+  - [💬 6. Reflections, Doubts, Insights \& The Circle](#-6-reflections-doubts-insights--the-circle)
+    - [Post-Sit Flow](#post-sit-flow)
+    - [Sit Reflections vs. Sit Doubts (Dedicated Streams)](#sit-reflections-vs-sit-doubts-dedicated-streams)
+    - [Identity & Privacy: Master Knows, Circle Can Mask](#identity--privacy-master-knows-circle-can-mask)
+    - [Sayadaw Insight Studio & Reusable Library (`sit_insights`)](#sayadaw-insight-studio--reusable-library-sit_insights)
+    - [Instant Notification Dispatch](#instant-notification-dispatch)
+    - [Awaiting vs. Open State (Practice Precedes Wisdom)](#awaiting-vs-open-state-practice-precedes-wisdom)
+  - [🔄 7. Return, Start Over \& Path Completion](#-7-return-start-over--path-completion)
+    - [Return vs. Start Over](#return-vs-start-over)
+    - [Starting Over a Complete Path](#starting-over-a-complete-path)
+  - [🔀 8. Single Enrollment \& Switching](#-8-single-enrollment--switching)
+  - [🙏 9. Dana Financial Impact System](#-9-dana-financial-impact-system)
     - [The Power of Dana](#the-power-of-dana)
-    - [Dana Transparency (Tab 5: Profile)](#dana-transparency-tab-5-profile)
+    - [Dana Transparency (Tab 5: Me)](#dana-transparency-tab-5-me)
     - [Direct Donations](#direct-donations)
-    - [For Forest Path Users](#for-forest-path-users)
-    - [When App Is New (No Dana Yet)](#when-app-is-new-no-dana-yet)
-  - [📱 9. App Navigation \& Tabs](#-9-app-navigation--tabs)
-    - [Bottom Navigation (5 Tabs)](#bottom-navigation-5-tabs)
-    - [Tab 1: Sanctuary (Home)](#tab-1-sanctuary-home)
-    - [Tab 2: Courses](#tab-2-courses)
+  - [📱 10. App Navigation \& Five Tabs](#-10-app-navigation--five-tabs)
+    - [Tab 1: Sanctuary](#tab-1-sanctuary)
+    - [Tab 2: Paths](#tab-2-paths-1)
     - [Tab 3: Sit (Center Tab)](#tab-3-sit-center-tab)
     - [Tab 4: Journey](#tab-4-journey)
-    - [Tab 5: Profile](#tab-5-profile)
-  - [🔔 10. Notifications \& Alerts](#-10-notifications--alerts)
-    - [Push Notifications](#push-notifications)
-    - [In-App Confirmation Dialogs](#in-app-confirmation-dialogs)
-  - [🔍 11. Transparency Requirements](#-11-transparency-requirements)
-  - [✅ 12. Edge Cases — Resolved](#-12-edge-cases--resolved)
-  - [📋 13. Future Roadmap & Considerations](#-13-future-roadmap--considerations)
+    - [Tab 5: Me](#tab-5-me)
+  - [🔔 11. Multi-Channel Notifications \& Alerts](#-11-multi-channel-notifications--alerts)
+  - [🔍 12. Transparency Requirements](#-12-transparency-requirements)
+  - [✅ 13. Edge Cases — Resolved](#-13-edge-cases--resolved)
+  - [📋 14. Future Roadmap \& Backlog](#-14-future-roadmap--backlog)
 
 ---
 
 ## 🌙 1. Vision
 
-MeritMoon is a **discipline-first mental cultivation platform** rooted in ancient, time-honored meditation traditions. The practices here are thousands of years old. They endure not because they are trendy, but because they meet the mind with depth, honesty, and care.
+MeritMoon is a **discipline-first mental cultivation platform** rooted in ancient, time-honored Theravada meditation traditions. The practices here are thousands of years old. They endure not because they are trendy, but because they meet the mind with depth, honesty, and care.
 
-Every design decision exists to serve one purpose: **genuine inner transformation through unbroken daily practice.**
+Every design decision exists to serve one purpose: **genuine inner transformation through unbroken nightly practice under the moon.**
 
-There are no superficial streak counters. No gamified badges for opening the app. The only thing at stake is **real course merits** — and that is serious enough on its own. If people love the practice, they come back. We do not manipulate practitioners with streak anxiety. Cultivating and protecting real merits is the true spiritual journey.
+There are no superficial streak counters. No gamified badges for merely launching the app. The only thing at stake is **real path merits** — and that is serious enough on its own. If meditators love the practice, they return. We do not manipulate meditators with streak anxiety. Cultivating and protecting real merits is the true spiritual journey.
 
 ---
 
@@ -81,420 +105,459 @@ There are no superficial streak counters. No gamified badges for opening the app
 
 ### The Forest Path (Free)
 
-| Aspect                    | Rule                                                                      |
-| :------------------------ | :------------------------------------------------------------------------ |
-| **Price**                 | Free, always                                                              |
-| **Course access**         | All courses, earned step by step through daily practice                   |
-| **Daily completion miss** | Active course merits reset to Day 1. Server remembers max merits reached. |
-| **Course ownership**      | Complete final day → OWNED ✓                                              |
-| **Merits protection**     | ❌ None — miss the day's cutoff and active merits reset                   |
-| **Switching courses**     | Current course resets to Day 1 (unless OWNED ✓)                           |
+| Aspect | Rule |
+| :--- | :--- |
+| **Price** | Free, always |
+| **Path access** | All paths, earned step by step through nightly practice |
+| **4:00 AM dawn cutoff miss** | Active path merits return to Night 1. Server remembers max merits reached. |
+| **Path completion** | Complete final night $\rightarrow$ Complete (permanent sanctuary status) |
+| **Merits protection** | ❌ None — miss the 4:00 AM dawn cutoff and active merits return to Night 1 |
+| **Switching paths** | Current path returns to Night 1 (unless already Complete) |
 
 ### The Moonlit Path ($9.99/month)
 
-| Aspect                       | Rule                                                                                                                  |
-| :--------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| **Price**                    | $9.99/month                                                                                                           |
-| **Course access**            | All courses, instant full access                                                                                      |
-| **Daily completion miss**    | Course merits **preserved** — continue from where you left off                                                        |
-| **Why merits are preserved** | **Dana is powered as a merit.** Supporting teachers and centers shields your merits from resetting.                   |
-| **Course ownership**         | Complete final day → OWNED ✓                                                                                          |
-| **Switching courses**        | Current course **stays saved** at current day/merits (until subscription ends)                                        |
-| **Dana Contribution**        | Percentage of subscription revenue goes directly to teachers & meditation centers (MeritMoon covers transaction fees) |
+| Aspect | Rule |
+| :--- | :--- |
+| **Price** | $9.99/month |
+| **Path access** | All paths, instant full access |
+| **4:00 AM dawn cutoff miss** | Path merits **preserved** — continue from where you left off |
+| **Why merits are preserved** | **Dana is powered as a merit.** Supporting masters and monasteries shields your merits from returning to Night 1. |
+| **Path completion** | Complete final night $\rightarrow$ Complete (permanent sanctuary status) |
+| **Switching paths** | Current path **stays saved** at current night/merits (until subscription ends) |
+| **Dana Contribution** | Direct percentage of subscription revenue flows directly to monasteries and masters (MeritMoon absorbs all transaction fees) |
 
 ### 🛡️ The "Moonlit Promise" & No-Marketplace Policy
 
-> **The Sacred Promise of Moonlit**: Once a practitioner steps onto the **Moonlit Path**, they enter a true sanctuary. They will **never** encounter an unexpected paywall, locked teacher masterclass, or upsell banner inside the app.
+> **The Sacred Promise of Moonlit**: Once a meditator steps onto the **Moonlit Path**, they enter a true sanctuary. They will **never** encounter an unexpected paywall, locked masterclass, or upsell banner inside the app.
 
 1. **No Fragmented Paywalls / Marketplace Chaos**:
-   - There are **no individual course price tags**, no standalone course sales, and no volatile teacher-set price changes.
-   - Having a paid subscription and hitting a *"Pay $29 to unlock this teacher"* banner destroys trust and breaks the serene meditation atmosphere. In MeritMoon, Moonlit means **100% all-inclusive, unrestricted access** to every course, teacher, soundscape, and wisdom transmission.
+   - There are **no individual path price tags**, no standalone path sales, and no volatile master-set price changes.
+   - Having a paid subscription and hitting a *"Pay $29 to unlock this master"* banner destroys trust and breaks the serene meditation atmosphere. In MeritMoon, Moonlit means **100% all-inclusive, unrestricted access** to every path, master, and masterclass.
 2. **No Decision Fatigue for the Meditator**:
-   - Practitioners come to quiet their minds, not to compare pricing options, calculate course discounts, or manage shopping carts.
-3. **Pure Dana-Driven Teacher Support**:
-   - Teachers and meditation centers are supported through the pooled **Dana Impact Fund** funded by Moonlit memberships and direct offerings, removing commercial pricing pressures from venerable teachers.
+   - Meditators come to quiet their minds, not to compare pricing options, calculate discounts, or manage shopping carts.
+3. **Pure Dana-Driven Master Support**:
+   - Masters and monasteries are supported through the pooled **Dana Impact Fund** funded by Moonlit memberships and direct offerings, removing commercial pricing pressures from venerable masters.
 
 > [!IMPORTANT]
 > There is **no streak counter** anywhere in MeritMoon. Motivation comes from genuine practice, inner peace, and the meaningful consequence of earning and preserving merits.
 
-### Moonlit Recovery — Restoring Merits After a Reset
+### Moonlit Recovery — Restoring Merits After a Return
 
-If a Forest Path practitioner experiences a **reset** (missed the daily midnight cutoff), the server permanently remembers their highest reached day:
-
-```
-Forest: Day 1 → Day 2 → ... → Day 10 → ⏰ Missed Day → Reset to Day 1
-                                                             ↓
-                                                  Practitioner joins Moonlit
-                                                             ↓
-                                                  Days 1–10 merits restored
-                                                  Continue from Day 10
-```
-
-If a Forest practitioner reset to Day 1, practiced up to Day 3, and then joined Moonlit:
+If a Forest Path meditator experiences an automatic **return** (missed their 4:00 AM dawn cutoff), the server permanently remembers their highest reached night:
 
 ```
-Forest: Day 10 → ⏰ Reset to Day 1 → Day 2 → Day 3 → Joins Moonlit
-                                                             ↓
-                                                  Days 1–10 merits restored
-                                                  (server remembers max = Day 10)
-                                                  Continue from Day 10
+Forest: Night 1 → Night 2 → ... → Night 10 → ⏰ Missed 4 AM → Return to Night 1
+                                                              ↓
+                                                   Meditator joins Moonlit
+                                                              ↓
+                                                   Nights 1–10 merits restored
+                                                   Continue from Night 10
 ```
 
-> [!NOTE]
-> The server always preserves the user's highest reached merits for each course. A **reset** sets active practice back to Day 1, but the historical record remains intact. Purchasing Moonlit immediately restores access to all previously earned merits.
+If a Forest meditator returned to Night 1, practiced up to Night 3, and then joined Moonlit:
+
+```
+Forest: Night 10 → ⏰ Return to Night 1 → Night 2 → Night 3 → Joins Moonlit
+                                                              ↓
+                                                   Nights 1–10 merits restored
+                                                   (server remembers max = Night 10)
+                                                   Continue from Night 10
+```
 
 ---
 
-## 🪷 3. The Merits System & Progress
+## 🪷 3. The Merits System: Cultivation, Not Credits
 
-Progress across MeritMoon is measured in **Merits**:
+MeritMoon has **zero credit or token shops**. Merits (*Kusala / Pāramī*) are never commercial currency to be spent or traded. They represent the sacred spiritual ledger of cultivation:
 
-1. **Daily Merits**: Earned by completing all assigned meditation sessions for a course day before midnight.
-2. **Dana as Merit**: Moonlit practitioners power their practice with Dana (generosity), which is recognized as an active spiritual merit that prevents course progress from resetting.
-3. **Earn Again Merits**: When a practitioner chooses to **Restart** a course, they are prompted to _earn again merits_, embarking on a completely fresh, intentional journey.
-4. **Permanent Accomplishment Records**: Even if active merits are reset or restarted, the practitioner's lifetime profile preserves the historical record of what they have accomplished (total meditation hours, completed courses, and milestone achievements).
+1. **Present Night Progression**: Advancing night by night by completing all assigned Sits for that night before 4:00 AM dawn.
+2. **Dana as Merit**: Moonlit meditators power their practice with Dana (generosity), which is recognized as an active spiritual merit that protects path progress from returning to Night 1.
+3. **Begin Anew**: When a meditator chooses to **Begin Anew** on a Complete path, they embark on a completely fresh, intentional journey with a beginner's mind.
+4. **Permanent Accomplishment Records**: Even if active path progress returns to Night 1 upon missed dawn or Begin Anew, the meditator's lifetime records permanently preserve what they have accomplished (total meditation hours, total completed sits, complete paths, and milestone achievements).
 
 ---
 
-## 📚 4. Course System & Curricula Architecture
+## 📚 4. Meditation Paths & Curricula
 
-### Lineages & Monasteries
-Courses are rooted in authentic meditation traditions (*Lineages*) and often hosted by revered meditation centers (*Monasteries*):
-- **Pa-Auk Lineage**: *Samatha leading to Vipassana, nimitta, deep absorptions, 4 elements.*
-- **The-Inn-Gu Lineage**: *Vedana Vipassana, observation of intense sensations.*
-- **Yay-Soon Lineage**: *Direct mindful awareness and insight.*
-- **Myay-Zin Lineage**: *Mindful grounding and breath.*
-- **Mahasi Lineage**: *Noting rising & falling.*
-- **Mogok Lineage**: *Dependent origination and mental formations.*
+### Traditions (Upanissaya) & Monasteries
+Paths are rooted in authentic meditation traditions (*Upanissaya* / **ဥပနိဿယ**) and hosted by revered meditation centers (*Monasteries*):
+- **Pa-Auk Tradition**: *Samatha leading to Vipassana, nimitta, deep absorptions, 4 elements.*
+- **The-Inn-Gu Tradition**: *Vedana Vipassana, observation of intense sensations.*
+- **Yay-Soon Tradition**: *Direct mindful awareness and insight.*
+- **Myay-Zin Tradition**: *Mindful grounding and breath.*
+- **Mahasi Tradition**: *Noting rising & falling.*
+- **Mogok Tradition**: *Dependent origination and mental formations.*
 
-### Character Dispositions & Temperament (*Carita*)
-Meditation is tailored medicine for the mind. MeritMoon rejects artificial "easy/hard" difficulty rankings, categorizing courses by **Mental Temperament (*Carita*)**:
-1. **Anger-Calming** (*Dosa-carita*): For minds prone to irritation and aversion → Loving-kindness (*Mettā*), patience.
-2. **Greed-Subduing** (*Rāga-carita*): For minds prone to attachment and craving → Body contemplation (*Asubha*), mindfulness of physical nature.
-3. **Restlessness-Stilling** (*Vitakka-carita*): For overactive, scattered thoughts → Breath concentration (*Anāpāna*), single-pointed anchor.
-4. **Confusion-Clearing** (*Moha-carita*): For bewilderment and mental cloudiness → Clear comprehension, mindful grounding.
-5. **Sloth-Awakening** (*Thīna-middha*): For drowsiness and sluggish energy → Perception of light, walking meditation, energy awakening.
-6. **Wisdom-Inquiry** (*Buddhi-carita*): For analytical and investigative minds → 4 Elements (*Dhātu*), Vipassana insight.
-7. **Faith-Devotion** (*Saddhā-carita*): For peace and emotional balance → Recollections of the Triple Gem (*Buddhanussati*).
+### Mind Natures & Centralized Curriculum Focus
 
-### Multi-Teacher Collaboration & Roles
-A course can feature multiple teachers collaborating under specific traditional roles:
-- **Principal Teacher / Sayadaw**: The lead meditation master delivering root instruction.
-- **Assistant Teacher**: Supporting guide providing practical daily drills and guidance.
-- **Dhamma Translator**: Multilingual Dhamma interpreter translating discourse.
-*Teacher profiles are stored independently and pointed to `users` accounts via RBAC (`teacher_admin` role).*
+Meditation is tailored medicine for the mind. MeritMoon rejects artificial "easy/hard" rankings, categorizing paths and nights by **Mind Nature** (Pali: *Carita* / Burmese: **စိတ်စရိုက်သဘာဝ**), strictly rooted in the canonical Theravada 6 Carita (*Cha-carita* / **စရိုက် ၆ ပါး**):
 
-### Course Structure & Sequencing
-- **Overview & Syllabus**: Every course includes both a concise **Summary** (browsing hook) and an in-depth **Description** (detailed practice syllabus).
-- **Days & Multi-Session Structure**: A course spans $N$ **Days** (e.g. 30 days), containing 1 to 5 sequenced sessions per day (`day: 1, position: 1` = Morning Breath; `day: 1, position: 2` = Evening Metta).
-- **Single Master Audio Stream**: Each practice session plays **1 pure master audio track** (clean voice mastered with subtle natural acoustics in production) to prevent dual-stream frequency clashing (Hz masking).
-- **Publishing Rule**: A course can **only** be marked published if all child lessons inside are published.
-- **Enrollment & Analytics**: Tracked in `users_courses` with `completed_lessons` stored as a JSONB array, and denormalized `enrolled_users_count` and `completed_users_count` metrics.
+- **Path Level (`paths.natures`)**:
+  - Single ordered array of natures sorted from strongest to weakest (e.g. `[2, 0]`).
+  - The first entry (`natures.first`) is automatically the primary, strongest root nature the path is built to eliminate (featured on cards, carousels, and main catalog filters).
+  - Curriculum curators are encouraged to specify only **1 to 2 natures** per path for razor-sharp practice focus.
+- **Night Level (`nights.nature`)**:
+  - Each individual night focuses on its specific mind nature (e.g. Night 1 reduces anger, Night 2 reduces greed). A path does not need to cover all natures across its nights.
+
+> **The 6 Canonical Mind Natures (*Cha-carita* / စရိုက် ၆ ပါး)**:
+> 1. **Anger-Calming** (*Dosa-carita*): For minds prone to irritation, annoyance, and aversion $\rightarrow$ Loving-kindness (*Mettā*), patience.
+> 2. **Greed-Subduing** (*Rāga-carita*): For minds prone to attachment, longing, and craving $\rightarrow$ Body contemplation (*Asubha*), mindfulness of physical nature.
+> 3. **Restlessness-Stilling** (*Vitakka-carita*): For overactive, scattered thoughts and mental wandering $\rightarrow$ Breath concentration (*Anāpāna*), single-pointed anchor.
+> 4. **Confusion-Clearing** (*Moha-carita*): For bewilderment, doubt, and mental cloudiness $\rightarrow$ Clear comprehension, mindful grounding.
+> 5. **Wisdom-Inquiring** (*Buddhi-carita*): For analytical and investigative minds $\rightarrow$ 4 Elements (*Dhātu*), Vipassana insight.
+> 6. **Faith-Inspiring** (*Saddhā-carita*): For emotional balance and devotion $\rightarrow$ Recollections of the Triple Gem (*Buddhanussati*).
+
+### Multi-Master Collaboration & Assembly Seats
+A path can feature multiple masters collaborating under specific traditional assembly seats:
+- **Head Master / Sayadaw** (`seat: 0: head`): The principal meditation master delivering root instruction.
+- **Assistant Master** (`seat: 1: assistant`): Supporting guide providing practical drills and advice.
+- **Dhamma Translator** (`seat: 2: translator`): Multilingual Dhamma interpreter translating discourse.
+
+### Path Structure: Path $\rightarrow$ Night $\rightarrow$ Sit
+- **Strict 3-Tier Hierarchy**: `paths` $\rightarrow$ `nights` $\rightarrow$ `sits`.
+- **Overview & Syllabus**: Every path includes both a concise **Summary** (browsing hook) and an in-depth **About** (detailed syllabus & doctrinal teachings).
+- **Nights & Sits Sequencer**: A path spans $N$ **Nights** (`nights` table, `night: 1..N`), each addressing its own `nature` and containing 1 to 5 sequenced **Sits** (`sits` table, `sit: 1..5`). Zero bloated `position` columns.
+- **Database Alignment**: Prescribed curriculum sits live in `sits` (linked to `night_id`). Completed user sessions live in `sit_records`.
+- **Single Master Audio Stream**: Each Sit plays **1 pure master audio track** (clean voice mastered with subtle natural acoustics in production) to prevent dual-stream frequency clashing (Hz masking).
+- **Publishing Rule**: A path can **only** be marked published if all child nights are published (and each night is complete only when all child sits inside are published).
 
 ```
-Course (e.g., "Pa-Auk Anāpāna Foundations")
-├── Lineage: Pa-Auk | Monastery: Pa-Auk Tawya
-├── Temperament: Restlessness-Stilling (Vitakka-carita)
-├── Teachers: Sayadaw (Lead) + Assistant Teacher
-├── Masterclass (Video Preview + Guided Sitting)
+Path (e.g., "Pa-Auk Anāpāna Foundations")
+├── Tradition: Pa-Auk | Monastery: Pa-Auk Tawya
+├── Natures: [Restlessness-Stilling, Wisdom-Inquiring] (Primary: Restlessness)
+├── Masters: Head Master (Sayadaw) + Assistant Master
+├── Masterclass (Video Preview + Guided Sit)
 ├── Summary & Detailed Syllabus Description
-├── Featured User Voices (Curated reflections)
+├── Featured Reflections (Curated reflections from meditators)
 │
-├── Day 1 (Earn Day 1 Merits)
-│   ├── Pre-text (preparation: terminology, environment, posture)
-│   ├── Session 1 (Position 1: Finding Your Anchor, 10 min)
-│   └── Session 2 (Position 2: Evening Metta, 15 min)
+├── Night 1 (Nature: Restlessness-Stilling — Cooling the Wandering Mind)
+│   ├── Preparation (posture, breath orientation, room setup)
+│   ├── Sit 1 (Finding Your Anchor, 10 min)
+│   └── Sit 2 (Evening Metta, 15 min)
 │
-├── Day 2 (Day 2 Merits)
-│   └── Session 1 (Position 1: Staying with the Touch-Point, 15 min)
+├── Night 2 (Nature: Anger-Calming — Releasing Irritation)
+│   └── Sit 1 (Staying with the Touch-Point, 15 min)
 │
 ├── ...
 ├── 🏔️ Milestone (e.g., Samatha complete → Vipassana begins)
-└── Day N (Final Day)
-    └── 🎉 COURSE COMPLETE → OWNED ✓
+└── Night N (Final Night — Completing the Path)
+    └── 🎉 PATH COMPLETE (Permanently rooted in Sanctuary)
 ```
 
 ### Content Types
 
-| Type                      | Description                                                                                                                                  |
-| :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pre-text**              | Displayed before a session begins. Explains terminology, mental preparation, posture, and room setup so no session time is wasted adjusting. |
-| **Sitting meditation**    | Eyes closed, audio-guided sitting. The core foundation.                                                                                      |
-| **Walking meditation**    | Mindful standing/walking. Pre-text instructs space preparation.                                                                              |
-| **Lying down meditation** | Body scan and deep relaxation. Pre-text guides posture.                                                                                      |
-| **Silent sitting**        | Audio guidance at the beginning and end with unguided silence in between.                                                                    |
-| **Partial guidance**      | Audio for opening minutes, sustained silence, and concluding chime.                                                                          |
+| Type | Description |
+| :--- | :--- |
+| **Preparation** | Displayed before a sit begins. Explains posture, terminology, and room setup so no session time is wasted adjusting. |
+| **Sitting meditation** | Eyes closed, audio-guided sitting. The core foundation. |
+| **Walking meditation** | Mindful standing/walking. Preparation instructs space requirements. |
+| **Lying down meditation** | Body scan and deep relaxation. Preparation guides alignment. |
+| **Silent sitting** | Audio guidance at the beginning and end with unguided silence in between. |
+| **Partial guidance** | Audio for opening minutes, sustained silence, and concluding chime. |
 
 ### Masterclasses
+Every path features an introductory **Masterclass** (freely accessible without enrollment):
+- **Video preview**: Master explaining the tradition, philosophy, and practical transformation.
+- **Guided preview sit**: A direct experiential taste of the technique.
 
-Every course features an introductory **Masterclass** (freely accessible without enrollment):
-
-- **Video preview**: Teacher explaining the lineage, philosophy, and practical transformation.
-- **Guided preview session**: A direct experiential taste of the technique.
-- Designed to open the practitioner's eyes and cultivate genuine aspiration to enroll.
-
-### User Voice Comments
-
-- **User Voices are written text comments** ("Voice" represents the practitioner's authentic reflection).
-- Practitioners can leave a text comment for each specific day upon completing its sessions.
-- **Featured User Voices**: Curated reflections highlighted on the Course Detail page to inspire new enrollments.
-
-### Course Display (Tab 2: Courses)
-
-- Course cards feature **subtle loop video backgrounds** (gentle movement, fireflies drifting).
-- Inside Course Detail: Masterclass → About → Featured User Voices → Day list.
-- **Future locked days do NOT display titles** — preserving the sacred element of discovery.
-- Teachers are featured synchronously alongside courses.
+### Paths Display (Tab 2: Paths)
+- Path cards feature **subtle loop video backgrounds** (gentle movement, fireflies drifting).
+- Inside Path Detail: Masterclass $\rightarrow$ About $\rightarrow$ Featured Reflections $\rightarrow$ Night list.
+- **Future locked nights do NOT display titles** — preserving the sacred element of discovery.
 
 ---
 
-## 🧘 5. Session Mechanics & Live Transcript
+## 🧘 5. Sit Mechanics & Guidance
 
-### Starting a Session
+### Starting a Sit (Tab 3: Sit)
 
-Tab 3 (**Sit**) is the elevated center tab. It directs the practitioner straight into their current required session.
+Tab 3 (**Sit**) is the elevated center tab. It directs the meditator straight into their current required Sit.
 
-| State                             | What Tab 3 Displays                                                     |
-| :-------------------------------- | :---------------------------------------------------------------------- |
-| **No course enrolled**            | "Your journey begins with a course" → Browse Courses CTA                |
-| **Session available**             | Pre-text → preparation guidance → "Begin Session" CTA                   |
-| **All today's sessions complete** | Congratulations → recommendation to carry mindful awareness until sleep |
-| **Waiting for next day**          | Countdown to midnight unlock                                            |
+| State | What Tab 3 Displays |
+| :--- | :--- |
+| **No path enrolled** | "Your journey begins with a path" $\rightarrow$ Browse Paths CTA |
+| **Sit available** | Preparation card $\rightarrow$ "Begin Sit" CTA |
+| **All tonight's Sits complete** | Congratulations $\rightarrow$ Night Merits secured $\rightarrow$ prompt to leave a Sit Reflection or Doubt |
+| **Waiting for next night** | Countdown to next night's unlock |
+
+### During a Sit
+
+| Element | Rule & Behavior |
+| :--- | :--- |
+| **Guidance Presence** | Strictly **Master-determined**. Meditators cannot choose silent vs guided mode or toggle audio off; if a Sit has audio, the meditator follows along with the master's guidance. |
+| **The Guidance Display** | Spoken audio guidance paired with an elemental **one sentence long** real-time text reveal. Does **not** show yet-to-speak words. Words appear in real-time as spoken; the entire sentence replaces only when transitioning to the next sentence. |
+| **Visual Immersion** | Full-screen meditative view: breathing moon mascot, timer, and subtle glowing ring. |
+| **Screen Sleep** | Phone sleep is supported. When timer reaches zero, a **peaceful chime** sounds. |
+| **Rewind Mechanics** | Can rewind **10 seconds** per tap. Cannot fast-forward beyond maximum reached point. |
+| **Rewind Balance** | 3 rewinds grant up to 3 fast-forwards (only up to highest listened point). |
+| **Leaving Tab 3** | ❌ **Sit progress lost.** Must re-sit from the beginning of that Sit. |
+| **Closing App / Backgrounding** | ❌ Sit progress lost. |
+| **Phone Call — Declined/Snoozed** | ✅ Sit continues uninterrupted. |
+| **Phone Call — Accepted** | ❌ Sit progress lost. |
+
+### Nightly Cycle, 4:00 AM Dawn & Nightfall
+- When all Sits for a night are finished $\rightarrow$ The night is complete! `present_night` advances to the next nocturnal milestone (`present_night += 1`).
+- **Fixed 4:00 AM Dawn**: Every night's practice must be finished before **4:00 AM local time** (`dawn: "04:00"`). Non-customizable. This gives meditators the entire night until morning dawn to sit.
+- **Timezone Anchoring**: When enrolled, the path's timezone is locked (`user_paths.timezone`). If the meditator travels, the dawn boundary remains strictly anchored to the enrollment timezone's 4:00 AM.
+- **Nightfall Notification**: As evening arrives (*"Night is falling..."*), a gentle push notification alerts the meditator if tonight's Sits are still pending before 4:00 AM dawn.
+- If a Sit is in active progress when 4:00 AM arrives, **the active Sit is never interrupted**; completing it secures that night and advances to the next stage.
+
+---
+
+## 💬 6. Reflections, Doubts, Insights & The Circle
+
+### Post-Sit Flow
+
+Immediately after a Sit concludes (peaceful chime sounds and duration requirement is satisfied):
+1. **Completion Screen**: The meditator is presented with their accomplishment confirmation and night advancement (e.g. *Night 3 Complete $\rightarrow$ Night 4 Awaits*).
+2. **Post-Sit Invitation**: A gentle prompt:
+   - *"Sit complete. Rest in stillness, or leave a Reflection or bring a Doubt to Master."*
+3. **Dedicated Submission**: Meditator chooses **either** a **Reflection** (`sit_reflections`) or a **Doubt** (`sit_doubts`). Or taps *"Rest in Stillness"*.
+
+```
+┌────────────────────────────────────────────────────────┐
+│ 🌕 Sit Complete: Night 3 Morning Anchor                │
+│                                                        │
+│ [✦ 15 Minutes Sat]       [Night 3 Merits: Secured]     │
+├────────────────────────────────────────────────────────┤
+│ ✍️ Leave a Sit Note for Tonight                        │
+│                                                        │
+│ Choose type: (●) Reflection    ( ) Doubt               │
+│                                                        │
+│ ┌────────────────────────────────────────────────────┐ │
+│ │ What arose in your mind or breath during sit?      │ │
+│ │ (or: what obstacle/uncertainty do you bring?)      │ │
+│ └────────────────────────────────────────────────────┘ │
+│                                                        │
+│ [✓] Display as "A Meditator" in The Circle             │
+│     (Master always sees your true name in admin)       │
+│                                                        │
+│ [ Share ]                                              │
+└────────────────────────────────────────────────────────┘
+```
+
+### Sit Reflections vs. Sit Doubts (Dedicated Streams)
+
+| Submission | Database Table | Purpose | Workflow |
+| :--- | :--- | :--- | :--- |
+| **Reflection** | `sit_reflections` | Meditative report on what arose (calmness, subtle sensations, mindfulness). | Instantly approved and displayed in The Circle under Reflections. Can be curated as "Featured Reflection" for the Path. A Master can also optionally bestow an Insight upon a profound reflection via `sit_insight_id`. |
+| **Doubt** | `sit_doubts` | Practice obstacle or technique uncertainty brought to the Master. | Routes to Master's Inbox. Cleared when an Insight from `sit_insights` is assigned. Appears in The Circle with the Insight. |
+
+### Identity & Privacy: Master Knows, Circle Can Mask
+
+1. **Master Transparency**:
+   - The Master **always** sees the real identity, sitting history, and practice logs of the meditator. Spiritual master interviews require complete transparency.
+2. **Masked in The Circle (`anonymous: true`)**:
+   - Meditators can toggle `anonymous: true` so their public display name appears as **"A Meditator"** in The Circle. This protects vulnerable sharing without fear of judgment.
+
+### Sayadaw Insight Studio & Reusable Library (`sit_insights`)
+
+To avoid repetitive inflation of identical questions across hundreds of meditators:
+1. **Reusable Insight Library (`sit_insights`)**:
+   - Stores authoritative teachings composed by masters for each `sit`.
+   - Master can compose a written teaching and attach an optional spoken audio blessing.
+2. **Multi-Doubt Assignment Flow**:
+   - When a Master opens their Inbox, they can **either**:
+     - **A) Compose New Insight**: Writes a fresh teaching $\rightarrow$ automatically saves into `sit_insights` library.
+     - **B) Assign Existing Insight**: Selects a previously composed Insight from that Sit's library!
+   - Sayadaw can select **multiple similar doubts at once** (e.g. 5 meditators asking about tightness at the nose) and assign the matching Insight with **1 click**.
+3. **Instant Resolution**:
+   - `sit_doubts.sit_insight_id` is linked.
+   - Status updates automatically (`sit_insight_id.present?`).
+   - Notifications are dispatched to all affected meditators.
+   - The Insight appears in The Circle, honoring the meditators who brought the doubt.
+
+### Instant Notification Dispatch
+
+When the Master assigns or shares an Insight:
+1. **Push Notification (OneSignal)**:
+   - Dispatched immediately to meditator's mobile device:
+   - *"Sayadaw [Name] shared an Insight on your doubt for [Sit Title]: '[First 60 chars]...' "*
+2. **In-App Notification (ActionCable WebSocket)**:
+   - Injected live into the meditator's bell and inbox.
+3. **Deep Linking**:
+   - Tapping opens that completed Sit's Circle, highlighting the Insight in gold.
+
+### Awaiting vs. Open State (Entering The Circle)
+
+1. **Achieving Entry into The Circle**:
+   - Entering The Circle is an achievement earned through practice.
+   - Sits are meant to be experienced directly, not intellectualized beforehand.
+   - **Before sitting tonight**: Status is **Awaiting** (*"The Circle is awaiting your sit tonight"*). Uncompleted Sits strictly conceal community reflections, doubts, and insights.
+2. **Open State & Browsing Past Nights**:
+   - The moment tonight's Sit is complete, The Circle flips to **Open**.
+   - Meditators can read tonight's reflections and doubts, and can also **browse back through previous completed nights** to review past doubts and insights.
+   - **Forest Path Rule**: Access to the Circle remains available as long as active practice remains unbroken. If a night is missed and the path returns to Night 1, future nights' Circles return to **Awaiting** until the meditator walks the path back up (or joins Moonlit). Complete paths remain open permanently.
+3. **Server-Side Authorization (`CirclePolicy`)**:
+   - Super Admin and Masters can unconditionally enter and answer (`user.super_admin? || user.master?`).
+   - Meditators can only enter once they have completed this specific sit: `user.completed_sit?(sit)`.
+   - If not sat: API returns `403 Forbidden` (`code: 403, error: "The Circle is awaiting your sit tonight."`).
+
+---
+
+## 🔄 7. Return, Begin Anew & Path Completion
+
+### Return vs. Begin Anew
+
+| Scenario | Nature | Effect on Forest Path | Effect on Moonlit Path |
+| :--- | :--- | :--- | :--- |
+| **Return** (`return`) | Automatic (missed 4:00 AM dawn) | Active path progress returns to Night 1. Server stores max progress (`max_night_reached`). Joining Moonlit restores all earned nights. | **No return.** Dana is powered as a merit, preserving active path progress (`present_night`). |
+| **Begin Anew** (`begin_anew`) | Intentional (meditator chooses fresh start) | Active path progress resets to Night 1. Meditator walks path fresh with a beginner's mind. | Active path progress resets to Night 1. Meditator walks path fresh with a beginner's mind. |
+
+### Beginning Anew on a Complete Path
+- When a meditator completes all nights of a path, it is marked **Complete** (permanently rooted in their Sanctuary).
+- **Complete paths never return to Night 1 automatically**, even if changing paths or reverting to the Forest path.
+- If the meditator intentionally chooses to **Begin Anew** on a Complete path:
+  - Active path progress resets to Night 1 (`present_night: 1`) so they can re-experience the journey with a beginner's mind.
+  - Lifetime sitting hours and completed sit records remain forever intact.
+
+---
+
+## 🔀 8. Single Enrollment, Stopping & Switching
+
+Meditators can only be actively enrolled in **one path at a time** to maintain undivided mental concentration.
 
 > [!NOTE]
-> There are no unguided/custom timer sessions in Tab 3 currently. Every session is rooted in an enrolled course.
+> **Zero "Paused" State**: Paths are never passively "paused" like video streaming. When a meditator switches away from an incomplete path, that path is **stopped** (`status: 2: stopped`).
 
-### During a Session
+| Meditator Path | Switching Situation | Result & Return Behavior |
+| :--- | :--- | :--- |
+| **Forest** | Enrolled in Path A (Night 7) $\rightarrow$ Switch to Path B | Path A stops (`status: 2: stopped`). Active progress returns to Night 1 (`present_night: 1`). Server preserves Night 7 in `max_night_reached`. Path B begins Night 1. When returning to Path A later on Forest, **they start from Night 1**. |
+| **Forest** | Path A is Complete $\rightarrow$ Enroll in Path B | Path A remains permanently Complete (`status: 1: completed`). Path B begins Night 1. |
+| **Moonlit** | Enrolled in Path A (Night 7) $\rightarrow$ Switch to Path B | Path A stops (`status: 2: stopped`). Server preserves Night 7 in `max_night_reached`. Path B begins Night 1. |
+| **Moonlit** | Returning to Path A after walking Path B (or after a period away) | All nights up to `max_night_reached` (Nights 1–7) are unlocked. Because it has been a while since their last sit on Path A, the app displays the **Welcome Back Dialog**:<br>• **(Recommended) Begin Anew**: Start fresh from Night 1 to rebuild mindful breath and concentration.<br>• **Continue from Night 8**: Resume at the next unlocked night. |
+| **Moonlit** | Subscription ends while Path A was stopped | Reverts to Forest rules upon lapse: active pointer resets to Night 1, but `max_night_reached = 7` is saved forever on the server. Re-subscribing to Moonlit brings back the Return Prompt Dialog. |
 
-| Element                           | Rule & Behavior                                                                                                                                                                  |
-| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Audio Guidance**                | Master audio plays with crystal-clear guidance, partial silence, or bookended instructions.                                                                                      |
-| **Live Transcript**               | **One sentence long**. Does **not** show yet-to-speak words. Words appear in real-time as spoken, and the entire sentence replaces only when transitioning to the next sentence. |
-| **Visual Immersion**              | Full-screen meditative view: breathing moon mascot, timer, and subtle glowing ring.                                                                                              |
-| **Screen Sleep**                  | Phone sleep is supported. When timer reaches zero, a **peaceful bell alarm** chimes.                                                                                             |
-| **Rewind Mechanics**              | Can rewind **10 seconds** per tap. Cannot fast-forward beyond maximum reached point.                                                                                             |
-| **Rewind Balance**                | 3 rewinds grant up to 3 fast-forwards (only up to highest listened point).                                                                                                       |
-| **Leaving Tab 3**                 | ❌ **Session progress lost.** Must re-sit from the beginning of that session.                                                                                                    |
-| **Closing App / Backgrounding**   | ❌ Session progress lost.                                                                                                                                                        |
-| **Phone Call — Declined/Snoozed** | ✅ Session continues uninterrupted.                                                                                                                                              |
-| **Phone Call — Accepted**         | ❌ Session progress lost.                                                                                                                                                        |
+### 💬 Welcome Back Dialog (Returning to a Stopped Path)
 
-> [!CAUTION]
-> **Session integrity is strict.** Leaving Tab 3 or taking a phone call cancels active session progress. Practitioners are clearly notified of this rule before pressing "Begin Session".
+When a Moonlit walker returns to a previously stopped path with unlocked nights:
 
-### Daily Cycle & Midnight Cutoff
-
-- When all sessions for a day are finished → Day Merits are secured 🎉.
-- Practitioners are encouraged to maintain mindfulness until sleep.
-- **Next day unlocks at exactly midnight** in the practitioner's enrollment timezone.
-- If a Forest user does not complete all sessions before the next midnight cutoff, active course merits reset to Day 1 (restorable via Moonlit).
-- If a session is in active progress at midnight, **the active session is never interrupted**; completing it secures the day.
-
----
-
-## 🔄 6. Reset, Restart & Course Ownership
-
-### Reset vs. Restart
-
-| Scenario    | Nature                                    | Effect on Forest Path                                                                                | Effect on Moonlit Path                                                |
-| :---------- | :---------------------------------------- | :--------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| **Reset**   | Automatic (missed daily midnight cutoff)  | Active merits return to Day 1. Server stores max progress. Joining Moonlit restores all earned days. | **No reset.** Dana is powered as a merit, preserving all course days. |
-| **Restart** | Intentional (user chooses to start fresh) | Active merits reset to Day 1. Prompts user to _earn again merits_.                                   | Active merits reset to Day 1. Prompts user to _earn again merits_.    |
-
-### Restarting an OWNED ✓ Course
-
-- When a practitioner has completed all days of a course, it is marked **OWNED ✓** (accessible forever).
-- If the practitioner intentionally chooses to **Restart** an owned course:
-  - **Active ownership status is removed** for that active run.
-  - The practitioner must complete all days again to re-own it.
-  - **Rationale**: The practitioner desires the genuine discipline and sacred gravity of a fresh, unbroken journey.
-  - **Accomplishment records**: Lifetime records still reflect that they completed the course historically.
+```
+┌────────────────────────────────────────────────────────┐
+│ 🌕 Welcome Back to Pa-Auk Foundations                  │
+│                                                        │
+│ You previously walked up to Night 7 under the moon.    │
+│ Since it may have been a while since your last sit,    │
+│ we recommend beginning anew with a fresh mind to       │
+│ rebuild your foundation.                               │
+│                                                        │
+│ [ 🌿 (Recommended) Begin Anew from Night 1 ]           │
+│                                                        │
+│ [ 🌕 Continue from Night 8 ]                           │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 🔀 7. Single Enrollment & Switching
-
-Practitioners can only be actively enrolled in **one course at a time** to maintain undivided focus:
-
-| Path        | Switching Situation                               | Result                                                                                                  |
-| :---------- | :------------------------------------------------ | :------------------------------------------------------------------------------------------------------ |
-| **Forest**  | Enrolled in Course A (Day 7) → Switch to Course B | Course A active merits reset to Day 1 (server saves Day 7 for Moonlit recovery). Course B starts Day 1. |
-| **Forest**  | Course A is OWNED ✓ → Enroll in Course B          | Course A remains permanently owned. Course B begins Day 1.                                              |
-| **Moonlit** | Enrolled in Course A (Day 7) → Switch to Course B | Course A stays saved at Day 7. Course B starts Day 1.                                                   |
-| **Moonlit** | Subscription ends while Course A is paused        | Reverts to Forest rules upon lapse.                                                                     |
-
-### Format Options
-
-| Format                    | Description                                               |
-| :------------------------ | :-------------------------------------------------------- |
-| **Video**                 | Teacher explaining the philosophy, what to expect         |
-| **Single guided session** | A taste of the meditation technique — shorter, accessible |
-| **Both**                  | Video introduction + guided preview session               |
-
-Masterclasses are **freely accessible** (no enrollment required) and prominently featured on the Courses tab and inside course detail pages.
-
----
-
-## 🙏 8. Dana Impact System
+## 🙏 9. Dana Financial Impact System
 
 ### The Power of Dana
-
-- A direct percentage of Moonlit subscription revenue flows to authentic meditation centers and monasteries.
-- **MeritMoon absorbs all payment processing and transaction fees** — ensuring the full dedicated percentage reaches the teachers.
+- A direct percentage of Moonlit subscription revenue flows to authentic monasteries and masters.
+- **MeritMoon absorbs all payment processing and transaction fees** — ensuring the full dedicated percentage reaches the monasteries.
 - _Dana is powered as a merit_, bridging personal practice with communal generosity.
 
-### Dana Transparency (Tab 5: Profile)
-
+### Dana Transparency (Tab 5: Me)
 - **Monthly & Cumulative Breakdown**: Total funds distributed and monasteries supported.
-- **Monastery & Center Profiles**: Names, locations, lineages, and teacher backgrounds.
-- **Teacher Voices**: Short audio/video messages and quotes from lineage masters.
-- **Individual Donors**: Dedicated recognition for practitioners who contribute direct offerings beyond their subscription (opt-in).
-- **Inspirational Vision**: For Forest users, displays community impact and the spiritual grace of supporting ancient meditation lineages.
+- **Monastery Profiles**: Names, locations, traditions, and abbots.
+- **Master Voices**: Short audio/video messages from tradition masters.
+- **Individual Donors**: Dedicated recognition for patrons who contribute direct offerings beyond their subscription.
 
 ### Direct Donations
-
-- Users can reach out to MeritMoon to donate to a **specific center** beyond their subscription
-- After successful direct donation, user is **featured as an individual donor** on the Dana Impact page (with consent)
-- Creates a visible cycle of generosity that inspires others
-
-### For Forest Path Users
-
-- Dana Impact section is visible on Profile
-- Shows **other people's collective impact** — centers supported, teacher voices
-- Inspirational messaging: _"How gracious it is to dana the teachers and the methods that transform people."_
-
-### When App Is New (No Dana Yet)
-
-- Show the **vision** of what Dana will accomplish
-- _"When you take the Moonlit Path, your contribution flows directly to the teachers who preserve these ancient practices. You're not just meditating — you're funding peace itself."_
+- Meditators can reach out to MeritMoon to donate to a **specific monastery** beyond their subscription.
+- After successful direct donation, meditator is featured as an individual donor on the Dana Impact page (with consent).
 
 ---
 
-## 📱 9. App Navigation & Tabs
+## 📱 10. App Navigation & Five Tabs
 
 ```
 ┌──────────────────────────────────────────────┐
-38px Moon Mascot 🌕  MeritMoon           [⚙️] Settings
+│ 🌕 38px Moon Mascot    MeritMoon    [⚙️]      │
 └──────────────────────────────────────────────┘
 ```
 
 ### Bottom Navigation (5 Tabs)
 
 ```
-┌───────┬───────┬───────┬───────┬───────┐
-│   🌿  │   📚  │  🌕   │   🏔️  │   👤  │
-│ Sanct │ Cours │  Sit  │ Journ │ Profi │
-└───────┴───────┴───────┴───────┴───────┘
+┌───────────┬───────────┬───────────┬───────────┬───────────┐
+│    🌿     │    📚     │    🌕     │    🏔️     │    👤     │
+│ Sanctuary │   Paths   │    Sit    │  Journey  │    Me     │
+└───────────┴───────────┴───────────┴───────────┴───────────┘
 ```
 
----
+### Tab 1: Sanctuary
+- **Path Merits Hero**: Current path progress bar (Night 7 of 30 Merits) + tonight's sit status.
+- **Daily Insight**: Wisdom card relevant to current enrolled path. Refreshed daily.
+- **Community Telemetry**: Real-time counter: **Sitting Now** under the moon.
 
-### Tab 1: Sanctuary (Home)
+### Tab 2: Paths
+- **Masterclasses Carousel**: Preview cards with video and introductory guided sits.
+- **Featured Paths**: Loop video cards with drifting fireflies.
+- **Masters**: Monastic profiles and traditions synced alongside paths.
+- **Path Detail**: Masterclass $\rightarrow$ About $\rightarrow$ Featured Reflections $\rightarrow$ Night List (future locked nights hide titles) $\rightarrow$ Enroll CTA.
 
-| Zone                     | Content                                                                                                                                             |
-| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Course Progress Hero** | Current course progress bar (Day 7 of 30) + today's session status. If no course: enrollment prompt. If OWNED ✓ courses exist, show last completed. |
-| **Daily Insight**        | Wisdom card relevant to the **currently enrolled course**. General wisdom if no course enrolled. Refreshed daily.                                   |
-| **Forest Stats**         | Community stats: minds growing, sitting now, teachers supported                                                                                     |
-
-### Tab 2: Courses
-
-| Zone                 | Content                                                          |
-| :------------------- | :--------------------------------------------------------------- |
-| **Featured Courses** | Loop video cards (GIF-like) with fireflies twinkling around them |
-| **Teachers**         | Featured synchronously alongside courses                         |
-| **Masterclasses**    | Highlighted as entry points, freely accessible                   |
-
-**Course Detail (push navigation):**
-
-1. Masterclass (video / guided preview)
-2. About section
-3. Featured User Voices (curated comments from practitioners)
-4. Day list (completed ✓, current ▶, future 🔒 — locked days show NO titles)
-5. Enrollment CTA
-
-### Tab 3: Sit (Center Tab)
-
-| State                            | Screen                                                                                                       |
-| :------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| **No course enrolled**           | "Your journey begins with a course" → Browse Courses CTA                                                     |
-| **Session available**            | Pre-text → preparation instructions → "Begin Session" CTA                                                    |
-| **Active session**               | Full-screen immersive: moon + timer + breathing ring + live transcript + rewind. **No navigation possible.** |
-| **Session complete, more today** | Congrats → "Session 2 of 3 ready" → sit now or return later                                                  |
-| **All sessions done**            | Day complete 🎉 → practice recommendation → next day at midnight                                             |
-| **Waiting for next day**         | Countdown to midnight + encouragement to practice                                                            |
-| **Grace period active**          | Grace countdown visible, sessions accessible                                                                 |
+### Tab 3: Sit (Elevated Center Tab)
+- **Preparation**: Posture guidance, environment orientation $\rightarrow$ "Begin Sit" CTA.
+- **Active Sit**: Full-screen immersive moon mascot with breathing ring + timer + 1-sentence real-time Guidance. **Zero navigation possible.**
+- **Post-Sit**: Night Merits celebration $\rightarrow$ Leave a Reflection or bring a Doubt to Master $\rightarrow$ The Circle.
+- **Waiting**: Countdown timer to next night's unlock.
 
 ### Tab 4: Journey
+- **Path Merits Detail**: In-depth progress meter with milestone markers.
+- **Practice Calendar**: Monthly grid (emerald ● = completed night, gold ● = tonight, empty ○ = missed).
+- **Session History**: Timeline of completed sit records (`sit_records`). Tapping any completed sit navigates straight to its **Circle**.
+- **Lifetime Records**: Milestones, total sitting hours, complete paths.
+- **Complete Paths**: Library of Complete paths (re-listen or start over to earn again merits).
 
-| Zone                       | Content                                                                                |
-| :------------------------- | :------------------------------------------------------------------------------------- |
-| **Course Progress**        | Detailed view of current course — day progress, sessions completed, milestones reached |
-| **Practice Calendar**      | Monthly grid: emerald ● = completed day, gold ● = today, empty ○ = missed              |
-| **Session History**        | Timeline of all completed sessions: date, duration, course, session number             |
-| **Achievements & Records** | Personal bests, milestones earned, practice statistics                                 |
-| **Owned Courses**          | Library of OWNED ✓ courses — retakeable, re-listenable                                 |
-
-### Tab 5: Profile
-
-| Zone            | Content                                                                      |
-| :-------------- | :--------------------------------------------------------------------------- |
-| **User Info**   | Avatar, username, member since, total meditation hours                       |
-| **Path Status** | Forest / Moonlit badge, manage subscription                                  |
-| **Dana Impact** | Full breakdown — monthly/overall, centers, teacher voices, individual donors |
+### Tab 5: Me
+- **Meditator Info**: Avatar, username, member since, total sitting hours.
+- **Path Status**: Forest / Moonlit badge + manage subscription.
+- **Dawn Cutoff**: Anchored 4:00 AM dawn local cutoff indicator.
+- **Dana Impact**: Full transparency breakdown (monthly totals, monasteries supported, master audio blessings, donor wall).
+- **Settings**: App preferences, notifications, identity mask default.
 
 ---
 
-## 🔔 10. Notifications & Alerts
+## 🔔 11. Multi-Channel Notifications & Alerts
 
-### Push Notifications
-
-- **Daily Mindset & Session Reminders**: Thoughtful morning prompts reflecting the day's teaching.
-- **Midnight Unlock Alerts**: Notification when the next day's course merits become available.
-- **Course Milestones & Completion**: Celebration alerts upon finishing key phases or completing a course.
-- **Monthly Dana Reports**: Summary of collective contributions delivered to meditation centers.
-
-### In-App Confirmation Dialogs
-
-- **Before Session Start**: _"Once you begin, leaving this screen will reset your session progress. You must complete the session without leaving."_
-- **Leaving Tab 3 Warning**: _"Your active session progress will be lost. Are you sure you want to leave?"_
-- **Switching Courses (Forest)**: _"Switching courses will reset your active merits in [Course]. Joining Moonlit can restore your progress up to Day [N]. Continue?"_
-- **Switching courses (Moonlit)**: _"Your progress in [Course] will be saved at Day [N]. You can return to it anytime while subscribed."_
-- **Restarting a Course**: _"This will reset your active merits and start [Course] completely fresh to earn again merits. Lifetime achievement history will be preserved. Are you sure?"_
+| Event | Channel | Trigger & Message |
+| :--- | :--- | :--- |
+| **Master's Insight** | Push + In-App | Triggered when Master answers doubt: *"Sayadaw [Name] shared an Insight on your doubt for [Sit Title]."* |
+| **Nightfall Alert** | Push | Triggered in evening (*"Night is falling..."*): Reminds meditator to sit before 4:00 AM dawn. |
+| **Night Unlock** | Push + In-App | Triggered at 4:00 AM dawn: *"A new night has dawned. Night [N] Merits are now open for your sitting."* |
+| **Morning Contemplation** | Push | Triggered at 07:30 local time: Morning contemplation tailored to current path temperament. |
+| **Monthly Dana Report** | In-App + Email | Summary of collective contributions delivered to monasteries. |
 
 ---
 
-## 🔍 11. Transparency Requirements
+## 🔍 12. Transparency Requirements
 
-Every rule in MeritMoon is explicit, transparent, and communicated in advance:
-
-1. **No Unexpected Merits Loss**: Reset triggers and midnight deadlines are clearly displayed.
-2. **Dana Accounting**: Absolute clarity on fee absorption and center disbursements.
-3. **Session Volatility**: Explicit pre-session warning before every timer start.
-
----
-
-## ✅ 12. Edge Cases — Resolved
-
-| Edge Case                                 | Resolution                                                                                       |
-| :---------------------------------------- | :----------------------------------------------------------------------------------------------- |
-| **Timezone Changes**                      | Locked to the practitioner's enrollment timezone. Midnight cutoff is fixed to that timezone.     |
-| **Connectivity**                          | **Online-only** to guarantee server-side merit verification.                                      |
-| **Multi-Device Login**                    | One active device session at a time; logging in on a second device safely invalidates the first. |
-| **Phone Call Handling**                   | Declined / snoozed → session continues. Accepted → session cancelled.                            |
-| **New Content Added to Completed Course** | OWNED ✓ status is permanent. Owners receive an email inviting them to explore the new days.      |
-| **Restarting Owned Course**               | Ownership is removed for the active run until re-completed, allowing a genuine fresh experience. |
+1. **No Unexpected Merits Loss**: Return triggers and 4:00 AM dawn deadlines are clearly displayed.
+2. **Dana Accounting**: Absolute clarity on fee absorption and monastery support distributions.
+3. **Sitting Integrity**: Explicit preparation warning before every timer start.
+4. **Circle Identity**: Clear toggle whether a reflection/doubt displays your name or **A Meditator**.
 
 ---
 
-## 📋 13. Future Roadmap & Considerations
+## ✅ 13. Edge Cases — Resolved
 
-| Feature                      | Notes                                                                       |
-| :--------------------------- | :-------------------------------------------------------------------------- |
-| **Offline session access**   | Consider for Moonlit users. Needs offline completion verification strategy. |
-| **Live gatherings**          | Monthly sessions with course teachers. Planned for post-launch.             |
-| **Gratitude dedication**     | Monthly featured donor names. Planned for post-launch.                      |
-| **Deaf accessibility**       | Full written transcripts as alternative to audio guidance.                  |
-| **Session verification**     | Beyond "don't leave Tab 3" — consider gentle periodic presence checks.      |
-| **Refund handling**          | Policy for what happens to Moonlit-saved progress after refund.             |
-| **Custom free-sit sessions** | Currently Tab 3 requires enrolled course. Consider freeform timer later.    |
+| Edge Case | Resolution |
+| :--- | :--- |
+| **Viewing The Circle before sitting** | State is **Awaiting**. Unlocks into **Open** immediately upon sit completion. |
+| **Timezone & Travel** | Locked to the meditator's enrollment timezone at 4:00 AM dawn. Evaluated strictly via UTC on the server. Travel does not auto-drift the active path. |
+| **Connectivity** | **Online-only** to guarantee server-side merit verification and sitting logs. |
+| **Multi-Device Login** | Follows RexOne Law U4 (platform-isolated sessions `web`, `android`, `ios`). Logging into another Android device replaces the previous Android token. |
+| **Phone Call Handling** | Declined / snoozed $\rightarrow$ sit continues. Accepted $\rightarrow$ sit cancelled. |
+| **Starting Over Complete Path** | Completed status is permanent in lifetime records; active run returns to Night 1 allowing a genuine fresh experience. |
+
+---
+
+## 📋 14. Future Roadmap & Backlog
+
+| Feature | Notes |
+| :--- | :--- |
+| **Live Gatherings** | Monthly live streaming Dhamma Q&A with Sayadaws. |
+| **Sayadaw Audio Insights** | Expanding master answers from text to recorded voice blessings. |
+| **Offline Practice Mode** | Potential Moonlit offline pack with cryptographic verification. |
+| **Deaf Accessibility** | Full written transcripts as alternative to audio guidance. |
+| **Presence Verification** | Gentle periodic breath sync or presence taps for lengthy sittings. |

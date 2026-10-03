@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "brand": {
+    "name": "MeritMoon",
+    "slug": "meritmoon",
+    "shortName": "MeritMoon",
+    "description": "Discipline-First Meditation Sanctuary Rooted in Ancient Wisdom",
+    "company": "Rex9",
+    "author": "Rex (Htet Naing)",
+    "supportEmail": "rex@rex9.me",
+    "website": "https://meritmoon.com",
+    "domain": "meritmoon.com",
+    "logoPath": "brand/logo.png"
+  },
+  "mobile": {
+    "appName": "MeritMoon",
+    "packageName": "com.rex9.meritmoon",
+    "bundleId": "com.rex9.meritmoon"
+  },
+  "web": {
+    "appName": "MeritMoon Web",
+    "title": "MeritMoon — A Kinder Mind Changes Everything",
+    "shortName": "MeritMoon"
+  },
+  "core": {
+    "appName": "MeritMoon Core",
+    "mailerSender": "no-reply@meritmoon.com"
+  }
+}

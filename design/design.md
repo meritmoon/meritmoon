@@ -68,7 +68,7 @@ This creates a **physically coherent** and **emotionally grounded** UI where eve
 | `--bg-surface` | `#071A0D` | Modals, elevated surfaces |
 | `--bg-glass-card` | `rgba(8, 26, 15, 0.28)` | Standard frosted glass card fill |
 | `--bg-glass-card-hover`| `rgba(12, 38, 22, 0.42)` | Hover state glass fill |
-| `--bg-glass-card-lit` | `rgba(14, 44, 25, 0.36)` | Featured course / tier glass fill |
+| `--bg-glass-card-lit` | `rgba(14, 44, 25, 0.36)` | Featured path / tier glass fill |
 | `--bg-glass-nav` | `rgba(4, 16, 9, 0.65)` | Scrolled frosted navigation bar |
 | `--glass-blur` | `24px` | Frosted backdrop blur radius |
 | `--glass-blur-heavy` | `32px` | Deep frosted backdrop blur |
@@ -192,7 +192,7 @@ border-color: var(--border-emerald); /* rgba(46,139,87,0.3) */
 box-shadow: 0 0 50px rgba(46, 139, 87, 0.12);
 ```
 
-### `.ccard` (Course Card)
+### `.pcard` (Path Card)
 
 Same glass surface with progress meter bar at bottom (emerald gradient fill).
 
@@ -261,7 +261,7 @@ box-shadow:
 | Nav (app bar logo) | `38px` |
 | Card icon          | `48px` |
 | Step indicator     | `44px` |
-| Course card        | `40px` |
+| Path card          | `40px` |
 | Pricing / About    | `56px` |
 | Footer             | `34px` |
 

@@ -61,3 +61,211 @@ re-write and re-organize the product design i wrote above. re-design the documen
   Restarting an OWNED ✓ course Ownership status removed. Must re-complete to re-own. This is intentional: they want the fresh journey again.
 - remove grace period cuz they can go moonlit to get their merits back
 - no versioning tags (no v1 / v2) — always maintain a single living source of truth and replace assets directly.
+
+########
+
+- POST-SITTING WISDOM & THE CIRCLE (CONFIRMED GLOSSARY):
+  - When a sitting finishes, the meditator can share a Reflection (what arose) or bring a Doubt to Sayadaw.
+  - Sittings are discrete units (each day has 1-5 sittings).
+  - Sayadaw always sees the meditator's true name and history in the Admin Portal (`master_admin`).
+  - In The Circle, meditators can mask their name as "A Meditator" to ask vulnerable doubts without shyness.
+  - Sayadaw answers with an Insight (clearing the doubt via text or audio blessing).
+  - Answering dispatches instant OneSignal push notification + ActionCable WebSocket in-app notification.
+  - The Circle: Community space dedicated to that specific sitting.
+  - Access state before sitting: "Awaiting" (patient, zero discrimination — simply awaiting today's sitting to open). Once complete: "Open".
+  - Completed paths are "Complete" (permanently rooted in Sanctuary, never auto-resets, only if intentionally restarted).
+  - Tab 2: "Paths" (banned: Courses).
+  - Tab 5: "Me" (banned: Profile).
+  - Pre-sitting guidance: "Preparation" (banned: Pre-Text).
+  - The Person: "Meditator" (banned: User, Practitioner).
+
+########
+
+- PRACTICE HIERARCHY, AUDIO, TELEMETRY & NOTIFICATIONS (CONFIRMED GLOSSARY):
+  - Progression Hierarchy: **Path** $\rightarrow$ **Night** $\rightarrow$ **Sit** (e.g., "Night 3: Sit 1 of 2"). "Day" replaced by "Night".
+  - "Sit" is the exact practice unit: "just sit enough" — no "sitting", no "session", no "workout", no "lesson".
+  - Curriculum lesson $\leftrightarrow$ Meditator session log: **sits** $\leftrightarrow$ **sit_records** (`Sit` $\leftrightarrow$ `Sit::Record`).
+  - Master: In schema, `masters` table has `monastic: boolean` (`true`: ordained monastic honored as Sayadaw/Venerable; `false`: lay Master). Respectful title: **Master**. Table is strictly `masters`, join table `path_masters`, foreign key `master_id`, RBAC `master_admin`. Zero "teacher" anywhere.
+  - Merits: Sacred spiritual ledger of nightly cultivation (*Pāramī*), lifetime dedication, and Dana merits protection. **Zero transactional credits or casino coin shop.**
+  - Spoken guidance & real-time text reveal: **Guidance** (strictly Master-determined, no toggle bypass; banned: Voice, Live Transcript).
+  - Concluding sound: **Chime** (banned: Bell, Alarm, Buzzer).
+  - Fixed 4:00 AM Dawn Cutoff: Non-customizable local 4:00 AM dawn cutoff anchored to path enrollment timezone. Travelling does not auto-drift active path. Server strictly evaluates and stores UTC.
+  - Evening notification: **Nightfall** (*"Night is falling..."* - alerts before 4:00 AM dawn).
+  - Real-time global counter: **Sitting Now** (banned: Active users, Online).
+  - Sacred venues receiving Dana: **Monastery**.
+  - Automatic miss event: **Return** (*"Return to Night 1"*, codebase: `return` / `returned_at`, banned: Reset).
+  - Intentional choice: **Start Over** (codebase: `start_over`, banned: Restart).
+  - Milestones: Kept as standard.
+  - The Circle: Code naming is strictly **circle** (short and compact). Post-sit status remains **Open**.
+  - Dedicated Sit Module Tables:
+    - `sits` (Model: `Sit`): Prescribed sits in a path.
+    - `sit_records` (Model: `Sit::Record`): Meditator's completed session logs.
+    - `sit_reflections` (Model: `Sit::Reflection`): Meditative reports on what arose.
+    - `sit_doubts` (Model: `Sit::Doubt`): Practice obstacles brought to Master. Zero status column in db! State derived from `sit_insight_id.nil?` (pending) vs `sit_insight_id.present?` (answered).
+    - `sit_insights` (Model: `Sit::Insight`): Master library of profound teachings by Sayadaws. Solves repetitive question inflation by letting Sayadaw assign one insight to multiple similar doubts with 1 click!
+
+########
+
+- TRADITION (UPANISSAYA / ဥပနိဿယ) & BASE SCHEMA CONSOLIDATION (CONFIRMED GLOSSARY):
+  - **Tradition** replaces Lineage, Method, and Technique: Represents the authentic Theravada teaching tradition and spiritual foundation (*Upanissaya* / **ဥပနိဿယ**; e.g. *Mogok, Mahasi, Pa-Auk, The-Inn-Gu, Yay-Soon, Myay-Zin Traditions*).
+  - Database table: `traditions` (Model: `Tradition`), foreign key: `tradition_id` in `monasteries` and `paths`. Banned: `lineages`, `methods`, `techniques`.
+  - Common Base Schema Consolidation: Primary Key (`id` UUID v4) and the 8 standard `ApplicationRecord` auditing and soft-delete columns (`created_by_id`, `updated_by_id`, `discarded_by_id`, `undiscarded_by_id`, `discarded_at`, `undiscarded_at`, `created_at`, `updated_at`) are documented once in a top base schema table. Domain business tables remain razor-sharp and free of redundant clutter.
+  - **Support Info (`support_info`)**: Replaced `disbursement_info` in `monasteries` table. Stores JSONB metadata for the monastery's **Kappiya** (lay monastery attendant/steward who handles financial affairs and support according to the Vinaya monastic code) and bank transfer details needed to receive Dana support.
+  - **Monastery Media Types**: Strictly `type: "cover"` (hero & card cover artwork) and `type: "gallery"` (grounds photos and food ceremony videos). Removed redundant `card` asset type.
+  - **Master Name Consolidation**: Removed `name` from `masters` table. Every `Master` is 1:1 linked to a `User` record via non-null `user_id`, delegating `name` and `username` directly to `users` (`users.name`, `users.username`). Eliminates duplicate name storage and unifies authentication, avatars, and identity.
+
+########
+
+- DISPOSITION (CARITA / စရိုက်), UNIFORM CADENCE, CATALOG CURATION & SCHEMA CONSOLIDATION (CONFIRMED GLOSSARY):
+  - **Disposition** (*Carita* / Pali: *Carita* / Burmese: **စရိုက်**) replaces Temperament: Canonical term for character disposition tailored to the path.
+  - **Uniform -ing Participle Cadence** across all 7 dispositions:
+    - `0: anger_calming` (_Dosa-carita_ $\rightarrow$ Loving-kindness, patience)
+    - `1: greed_subduing` (_Rāga-carita_ $\rightarrow$ Asubha, body contemplation)
+    - `2: restlessness_stilling` (_Vitakka-carita_ $\rightarrow$ Anāpāna breath anchor)
+    - `3: confusion_clearing` (_Moha-carita_ $\rightarrow$ Clear comprehension, grounding)
+    - `4: sloth_awakening` (_Thīna-middha_ $\rightarrow$ Light perception, walking meditation)
+    - `5: wisdom_inquiring` (_Buddhi-carita_ $\rightarrow$ 4 Elements, Vipassana insight)
+    - `6: faith_inspiring` (_Saddhā-carita_ $\rightarrow$ Recollection of Buddha, peace)
+  - **Quotes Table Cleanup**: Removed `temperament` / `disposition` entirely from `quotes`. Daily quotes under the moon are universal for all meditators.
+  - **Tags & Curation Priority**:
+    - Added unique `tag` to `traditions`, `monasteries`, `masters`, and `paths`.
+    - Added `priority` integer column (`1 = top`) to `traditions`, `monasteries`, `masters`, and `paths` for catalog curation ordering.
+  - **Path Master Assembly Seats**: Compact enum in `path_masters.seat`: `0: head`, `1: assistant`, `2: translator`. (Replaced `role` with `seat` to eliminate IAM/RBAC confusion).
+  - **Path Publishing Integrity Rule**: A path is published only when all child nights are published (and each night is complete only when all child sits inside are published).
+  - **Schema Normalization Enforcement (Law U14)**:
+    - Removed `sits_count` from `paths` (confusing with `nights`).
+    - Removed redundant `completed_sits` JSONB from `user_paths` (`sit_records` is the single relational source of truth).
+    - Removed redundant `notes` text column from `sit_records` (meditative reflections live in `sit_reflections`).
+    - `user_paths`: Renamed `cutoff_time` $\rightarrow$ `dawn_cutoff: "04:00"`. Clarified `current_night` (active pointer 1..N) vs `night_merits` (unbroken completed count 0..N).
+    - Added optional `sit_insight_id: uuid, nullable` to `sit_reflections` for when a Master bestows an insight on a profound reflection.
+    - Curation via `is_featured`: Flag on `sit_reflections` highlights on public Path Detail; flag on `sit_insights` pins gold to the top of The Circle.
+    - **Begin Anew** (`begin_anew` / Burmese: **အသစ်တဖန် ပြန်လည်စတင်ခြင်း**): Sacred terminology alternative for Start Over.
+    - **The Circle Access Gating Policy**: Replaced hardcoded roles with standard RexOne IAM permission `can?(:bypass_circle)`.
+
+########
+
+- DAWN, CANONICAL 6 CARITA (CHA-CARITA), SORTED NATURES ARRAY, PRESENT NIGHT & NIGHTS TABLE (CONFIRMED):
+  - **Dawn (`dawn: "04:00"`)**: Permanent replacement for `cutoff` / `dawn_cutoff`. In UI: *"Sit before 4:00 AM dawn"*.
+  - **Canonical Theravada *Cha-carita* (စရိုက် ၆ ပါး / 6 Mind Natures)**:
+    - Strictly 6 Carita per canonical Theravada scriptures (*Visuddhimagga* Ch. III / *Niddesa*). Eliminated `sloth_awakening` (*Thīna-middha* is one of the 5 Hindrances / *Nīvaraṇa*, not a Carita).
+    - Canonical 6 Enums (0..5):
+      - `0: anger_calming` (*Dosa-carita* $\rightarrow$ Loving-kindness, patience)
+      - `1: greed_subduing` (*Rāga-carita* $\rightarrow$ Asubha, body contemplation)
+      - `2: restlessness_stilling` (*Vitakka-carita* $\rightarrow$ Anāpāna breath anchor)
+      - `3: confusion_clearing` (*Moha-carita* $\rightarrow$ Clear comprehension, grounding)
+      - `4: wisdom_inquiring` (*Buddhi-carita* $\rightarrow$ 4 Elements, Vipassana insight)
+      - `5: faith_inspiring` (*Saddhā-carita* $\rightarrow$ Recollection of Buddha, peace)
+  - **`paths.natures` (Single Sorted Array — Zero Redundancy)**:
+    - Completely dropped separate `main_nature` column.
+    - Single `natures: jsonb, default: []` stores an ordered array sorted from strongest to weakest (e.g. `[2, 0]`).
+    - The first entry (`natures.first`) automatically acts as the primary featured nature for hero cards, carousels, and catalog filters.
+    - Curators are encouraged to specify only 1 to 2 natures per path.
+  - **Night-Level Nature (`nights.nature`)**:
+    - Each progressive night assigns its single targeted `nature: integer` (0..5) (e.g., Night 1 addresses restlessness, Night 2 addresses anger).
+  - **Dropped `night_merits` (Zero Fake Points)**:
+    - Completely removed `night_merits` integer column from `user_paths`. No point systems, XP, or token counters.
+    - Genuine spiritual merits (*Pāramī*) are tracked organically via lifetime hours sat, completed sits, and Dana given.
+  - **`present_night` (Zero Legacy)**:
+    - Renamed `current_night` $\rightarrow$ `present_night` (1..N). Represents the active nocturnal stage to sit tonight.
+  - **Normalized `nights` Table (Strict 3-Tier Hierarchy)**:
+    - Created `nights` table: `paths` $\rightarrow$ `nights` $\rightarrow$ `sits`.
+    - Columns: `path_id`, `night`, `nature`, `title`, `published`.
+    - Dropped bloated `position` column: `night` (integer 1..N) is the single sequence and ordering number.
+    - `sits` links directly to `night_id: uuid` (and `path_id: uuid`).
+  - **Pure Domain `CirclePolicy` (Super Admin Guaranteed by Foundation)**:
+    - Removed redundant `user.super_admin?` check — RexOne Core's authorization filter/base policy already guarantees super admin entry at the foundation level.
+    - Clean, human-readable domain logic:
+      ```ruby
+      class CirclePolicy < ApplicationPolicy
+        def open?
+          # 1. Meditation Masters can always enter and guide
+          return true if user.master?
+
+          # 2. Meditators can only enter once they have completed this sit
+          user.completed_sit?(record)
+        end
+      end
+      ```
+  - **Normalized `sits` Table (No Position Column)**:
+    - Dropped bloated `position` column from `sits`.
+    - `sit: integer` (1..5) is the single sequence identifier within that night (e.g., Sit 1 of Night 1, Sit 2 of Night 1, Sit 1 of Night 2).
+    - Unique index: `index_sits_on_night_id_and_sit` (UNIQUE: `night_id`, `sit`).
+  - **Explicit `Unique` Documentation Column Across All Tables**:
+    - Added a `Unique` column across every schema table in `schema.md`.
+    - Clean visual design: Highlights unique constraints with bright green checks (`✅`) and uses dim text crosses (`✕`) for non-unique columns (avoiding dash `—` and avoiding bright red `❌` emoji reserved for `Nullable`).
+  - **Replaced `description` with `about` Across All Tables**:
+    - Universal human plain English: `traditions.about`, `monasteries.about`, `paths.about`.
+    - Eliminates redundant generic tech jargon and pairs naturally with `paths.summary` (short hook) vs `paths.about` (in-depth syllabus & teachings).
+  - **Replaced `slug` with `tag` Across All Tables**:
+    - Replaced ugly 19th-century typography jargon `slug` with clean, universal **`tag`**:
+      - `traditions.tag` (`index_traditions_on_tag`, UNIQUE: `tag`)
+      - `monasteries.tag` (`index_monasteries_on_tag`, UNIQUE: `tag`)
+      - `masters.tag` (`index_masters_on_tag`, UNIQUE: `tag`, e.g. `sayadaw-u-tejaniya`, `ashin-janaka`)
+      - `paths.tag` (`index_paths_on_tag`, UNIQUE: `tag`, e.g. `mindful-breath-foundation`)
+    - Short, punchy, memorable, and decoupled from mutable user authentication accounts.
+  - **Replaced `role` with `seat` in `path_masters`**:
+    - Replaced `path_masters.role` with **`path_masters.seat`**: `0: head` (Principal Master / Sayadaw), `1: assistant`, `2: translator`.
+    - Grounded in Theravada Buddhist Council tradition (*Āsana* / ထိုင်ခုံ / သံဃာ့နေရာ).
+    - Completely eliminates cognitive confusion with IAM/RBAC administrative roles (`user.roles`, `master_admin`, `super_admin`).
+  - **Foreign Key Parity (`sit_insight_id`)**:
+    - Renamed `insight_id` $\rightarrow$ `sit_insight_id` in `sit_reflections` and `sit_doubts` for 100% table name parity with `sit_insights` (matching `sit_records` $\rightarrow$ `sit_record_id`).
+  - **Replaced `tier` with `moonlit: boolean` (Pure Simplicity)**:
+    - Replaced SaaS pricing enum `tier` with simple `moonlit: boolean, default: false`.
+    - If `false` (default): Free Forest Path open to all humanity.
+    - If `true`: Exclusive to Moonlit walkers whose subscription powers Dana to monasteries. Eliminates subscription jargon.
+  - **Replaced `position` with `priority` & Dropped Redundant Counter Columns (Law U14)**:
+    - **Where `priority` is retained**: In top-level catalog directories (`traditions.priority`, `monasteries.priority`, `masters.priority`, `paths.priority`). Represents manual editorial curation priority (`1 = top`). Avoids confusion with job titles, physical posture, or GPS coordinates.
+    - **Where `position` was dropped as 100% redundant**:
+      1. **`path_masters`**: Ordering is naturally and deterministically governed by `seat` (`0: head`, `1: assistant`, `2: translator`). Head Master is always #1, Assistant is #2, Translator is #3. An extra position column was dead weight.
+      2. **`nights`**: Milestone ordering is already governed by sequential `night: integer` (Night 1, Night 2... Night 30).
+      3. **`sits`**: Lesson practice ordering is already governed by sequential `sit: integer` (Sit 1, Sit 2 of Night 1).
+      4. **Other tables**: `sit_records` (orders by `completed_at`), `sit_reflections` / `sit_doubts` (order by `created_at`). None require an artificial position integer.
+
+########
+
+- ZERO "PAUSE" STATE, STOPPED LIFECYCLE & RETURN PROMPT DIALOG (CONFIRMED):
+  - **No "Paused" State**: Paths are never passively "paused" like video streaming. In meditation, momentum stops when practice ceases.
+  - **Switching Incomplete Path (`status: :stopped`, `2`)**:
+    - When a meditator switches from Path A to Path B, Path A is **stopped** (`user_paths.status: 2: stopped`).
+    - On Forest: Path A active progress returns to Night 1 (`present_night: 1`). `max_night_reached` preserves highest reached night (e.g. Night 7).
+    - When the meditator finishes Path B and returns to Path A on Forest, **they start from Night 1** (they do NOT resume at Night 7).
+  - **Moonlit Return & The Welcome Back Prompt Dialog**:
+    - When a meditator has Moonlit (or purchases Moonlit), all nights up to `max_night_reached` (e.g. Nights 1–7) are unlocked.
+    - BUT because they have been away walking Path B (or away from Path A for a while), the app does NOT silently jump them to Night 8.
+    - Instead, upon opening Path A, the app presents a dignified prompt dialog:
+      - **(Recommended) Begin Anew**: Start fresh from Night 1 (recommended by the app, since it may have been quite a while and rebuilding breath foundation is spiritually sound).
+      - **Continue from Night 8**: Resume at the next unlocked night (`max_night_reached + 1`).
+  - **Database Alignment**:
+    - `user_paths.status` enum: `0: active` (single active path), `1: completed` (Complete ✓), `2: stopped` (stopped when switching paths).
+    - Standard non-unique composite index: `index_user_paths_on_user_id_and_status` (`user_id`, `status`).
+    - Exactly 1 active path is enforced at application model layer via `validate :single_active_path, if: :active?` (clean, friendly error message; no rigid partial SQL index in migration).
+  - **Forbidden Vocabulary**: Banned *"Pause", "Paused", "Freeze", "Put on hold", "Sleep mode"*. Standard term: **Stopped** (`stopped`).
+
+########
+
+- AGILE STANDARD MIGRATIONS & MODEL VALIDATIONS DOCTRINE (CONFIRMED — LAW C6):
+  - **Philosophy**: Database migrations must remain thin, standard, and agile. Migrations define column types, nullability, foreign keys, and clean query and unique indexes.
+  - **Single-Field & Composite Join Unique Indexes Permitted & Standard**:
+    1. `traditions`: `add_index :traditions, :tag, unique: true`, `add_index :traditions, :name, unique: true`.
+    2. `monasteries`: `add_index :monasteries, :tag, unique: true`.
+    3. `masters`: `add_index :masters, :user_id, unique: true`, `add_index :masters, :tag, unique: true`.
+    4. `paths`: `add_index :paths, :tag, unique: true`.
+    5. `path_masters`: `add_index :path_masters, [:path_id, :master_id], unique: true` (standard composite join table unique key).
+    6. `sit_reflections` & `sit_doubts`: `add_index :table, :sit_record_id, unique: true` (1:1 sit completion proof).
+    7. `assets`: `add_index :assets, :url, unique: true`.
+  - **Zero Brittle DB Constraints**:
+    - Zero raw SQL partial indexes (`WHERE discarded_at IS NULL` or `WHERE status = 0`).
+    - Zero multi-column sequence unique indexes on ordering/positional columns (`nights.night`, `sits.sit`) to avoid drag-and-drop / reordering deadlocks.
+  - **Model-Led Business Validation Authority & Recycle Bin Duplicate Awareness**:
+    - Model validations enforce uniqueness across all records (including discarded/recycled records) by default without `{ conditions: -> { kept } }`.
+    - Immediately alerts administrators if an entity already exists in the Recycle Bin ("has already been taken"), prompting them to restore it (`undiscard`) or permanently purge it from the bin (`destroy`) before creating a duplicate.
+    1. `user_paths`: Single active path enforced via `validate :single_active_path, if: :active?` (no raw SQL partial index `WHERE status = 0`).
+    2. `nights`: Reordering sequence enforced via `validates :night, presence: true, numericality: { greater_than: 0 }, uniqueness: { scope: :path_id, message: "night already exists for this path" }`.
+    3. `sits`: Reordering sequence enforced via `validates :sit, presence: true, numericality: { in: 1..5 }, uniqueness: { scope: :night_id, message: "sit already exists for this night" }`.
+    4. `sit_reflections` & `sit_doubts`: 1:1 sit completion proof enforced via `validates :sit_record_id, uniqueness: { allow_nil: true, message: "already submitted for this sit" }`.
+    5. `path_masters`: Membership uniqueness enforced via `validates :master_id, uniqueness: { scope: :path_id, message: "already assigned to this path" }`.
+    6. `masters`: Profile uniqueness enforced via `validates :user_id, uniqueness: { message: "already has a master profile" }`.
+    7. `traditions`, `monasteries`, `masters`, `paths`: Tags and names validated via `uniqueness: { case_sensitive: false }`.
+
+
+

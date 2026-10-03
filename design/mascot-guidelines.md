@@ -6,7 +6,7 @@
 
 ## 🧭 1. Mascot Identity & Core Philosophy
 
-The **Full Moon Mascot** (🌕) is the soul and living embodiment of **MeritMoon**. It is neither a cartoon gimmick nor a superficial branding asset; it is a **gentle, mindful companion** that breathes, blinks, watches with kindness, and illuminates every step of the practitioner's journey.
+The **Full Moon Mascot** (🌕) is the soul and living embodiment of **MeritMoon**. It is neither a cartoon gimmick nor a superficial branding asset; it is a **gentle, mindful companion** that breathes, blinks, watches with kindness, and illuminates every step of the meditator's journey.
 
 ### Fundamental Brand Laws
 1. **The Moon is Always Full**: There are no half-moons, crescent cutouts, or gibbous phases for the mascot. The full moon represents the innate, unbroken clarity of the mind.
@@ -67,7 +67,7 @@ The mascot is constructed from precise geometric ratios based on its bounding di
 
 ### 1. Welcoming / Alert (`mascot.svg`)
 - **Usage**: App bar navigation, default cards, settings header, onboarding.
-- **Eyes**: Open, alert, soulful with specular catchlight glints. Actively tracks practitioner cursor or touch location in 3D / 2D space.
+- **Eyes**: Open, alert, soulful with specular catchlight glints. Actively tracks meditator cursor or touch location in 3D / 2D space.
 - **Mouth**: Delicate, sweet, innocent smile of an earnest child meditator.
 - **Halo**: Soft 4-second continuous breath cycle.
 
@@ -77,10 +77,10 @@ The mascot is constructed from precise geometric ratios based on its bounding di
 - **Mouth**: Subtle, tranquil resting child smile (`M 30 48 Q 42 59 54 48`).
 - **Blush**: **ZERO BLUSH** — in deep meditation, the mind and face settle into pure tranquility, equanimity, and stillness (no excitement or blush).
 - **Halo**: Multi-layer concentric breathing rings (Inner $130\%$, Outer $155\%$ with dashed flow).
-- **Animation**: 9-second deep breathing synchronization with the practitioner's breath.
+- **Animation**: 9-second deep breathing synchronization with the meditator's breath.
 
 ### 3. Joyful / Pīti Burst (`mascot-joyful.svg`)
-- **Usage**: Day completion modal, course finished celebration, milestone achievement, Dāna dedication.
+- **Usage**: Night completion modal, path complete celebration, milestone achievement, Dana dedication.
 - **Eyes**: Upward smiling happy crescents (`⌒ ⌒`).
 - **Mouth**: Warm, sweet smiling curve.
 - **Blush**: Elevated ruby-gold blush glow ($0.38$ opacity).
@@ -117,7 +117,7 @@ $$\text{Opacity}(t) = 0.60 + 0.40 \cdot \sin\left(\frac{2\pi t}{9}\right)$$
 ---
 
 ### B. Eye Tracking & Clamping Vector Math
-When the practitioner moves their finger or mouse, the mascot's eyes gently track the position within an organic eye socket boundary.
+When the meditator moves their finger or mouse, the mascot's eyes gently track the position within an organic eye socket boundary.
 
 **Mathematical Formula**:
 Let the center of the mascot face be $(X_c, Y_c)$ and pointer position be $(X_p, Y_p)$:
@@ -184,9 +184,9 @@ function scheduleBlink(face) {
 | Context | Render Size ($D$) | Glow Radius | Eye Tracking | Sparkles |
 | :--- | :--- | :--- | :--- | :--- |
 | **App Bar Navigation Logo** | `38px` | `14px` | Enabled | None |
-| **Course & Card Thumbnails** | `40px – 48px` | `18px` | Enabled | None |
-| **Step / Day Progress Marker** | `44px` | `16px` | Enabled | On Day Complete |
-| **Profile & Dana Impact Hero** | `52px – 56px` | `24px` | Enabled | Subtle Drift |
+| **Path & Card Thumbnails** | `40px – 48px` | `18px` | Enabled | None |
+| **Night Progress Marker** | `44px` | `16px` | Enabled | On Night Complete |
+| **Me & Dana Impact Hero** | `52px – 56px` | `24px` | Enabled | Subtle Drift |
 | **Tab 3: Active Sit Sanctuary** | `180px – 240px` | `60px` | Meditative Mode | Breathing Halo Rings |
 | **Footer & Watermark** | `34px` | `10px` | Idle | None |
 
