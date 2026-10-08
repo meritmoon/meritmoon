@@ -24,7 +24,7 @@ const C = {
    Easily toggle between 'waitlist' and 'live' modes
    ═══════════════════════════════════════════════════════════════════════ */
 const SITE_CONFIG = {
-  mode: 'live', // 'waitlist' | 'live'
+  mode: 'waitlist', // 'waitlist' | 'live'
   storeLinks: {
     appStore: 'https://apps.apple.com/app/meritmoon',
     googlePlay: 'https://play.google.com/store/apps/details?id=com.meritmoon.app',
